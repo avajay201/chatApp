@@ -146,7 +146,7 @@ export default function Register({ navigation }) {
         />
 
         {loading ? (
-          <ActivityIndicator size="large" color="#009387" style={styles.loader} />
+          <ActivityIndicator size="large" color="#800925" style={styles.loader} />
         ) : (
           <Animatable.View animation="zoomIn" duration={1500}>
             <TouchableOpacity style={styles.button} onPress={handleRegister}>
@@ -166,7 +166,7 @@ export default function Register({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#009387',
+    backgroundColor: '#800925',
     justifyContent: 'center',
   },
   header: {
@@ -189,20 +189,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   label: {
-    color: '#05375a',
+    color: '#800925',
     fontSize: 18,
     marginTop: 10,
   },
   input: {
     borderBottomWidth: 1,
-    borderBottomColor: '#f2f2f2',
+    borderBottomColor: '#800925',
     marginBottom: 20,
     fontSize: 16,
     paddingBottom: 5,
     color: '#05375a',
   },
   button: {
-    backgroundColor: '#009387',
+    backgroundColor: '#800925',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   },
   loginText: {
     marginTop: 20,
-    color: '#009387',
+    color: '#800925',
     textAlign: 'center',
   },
   disabledText: {

@@ -349,7 +349,7 @@ export default function Profile({ navigation }) {
                 />
 
                 {loading ? (
-                  <ActivityIndicator size="large" color="#009387" style={styles.loader} />
+                  <ActivityIndicator size="large" color="#800925" style={styles.loader} />
                 ) : (
                   <TouchableOpacity
                   style={styles.saveButton}
@@ -370,7 +370,7 @@ export default function Profile({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#009387",
+    backgroundColor: "#800925",
   },
   header: {
     flex: 1,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   editButton: {
-    backgroundColor: "#009387",
+    backgroundColor: "#800925",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     color: "#05375a",
   },
   saveButton: {
-    backgroundColor: "#009387",
+    backgroundColor: "#800925",
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     left: "55%",
-    backgroundColor: "#009387",
+    backgroundColor: "#800925",
     borderRadius: 20,
     padding: 5,
   },

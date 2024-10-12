@@ -1,303 +1,221 @@
-import React, { useEffect, useState, useCallback, useContext } from 'react';
-import MyLayout from './MyLayout';
-import {View, Text, FlatList, StyleSheet, TouchableOpacity, ToastAndroid, ActivityIndicator } from 'react-native';
-import * as Animatable from 'react-native-animatable';
-import { useFocusEffect } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Avatar } from './comps/chats/Avatar';
-import { userChats } from '../actions/APIActions';
-import { BASE_URL } from '../actions/API';
+import React, { useEffect, useContext, useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, ToastAndroid, Image } from 'react-native';
 import { MainContext } from '../others/MyContext';
-
+import MyLayout from './MyLayout';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { searchUser } from './../actions/APIActions';
+import { METRI_MEDIA_URL } from '../actions/API';
 
 export default function Home({ navigation }) {
-  const [chats, setChats] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [activeUsers, setActiveUsers] = useState([]);
-  const [activeMembers, setActiveMembers] = useState([]);
-  const { wsData, setIsLogged } = useContext(MainContext);
+  const { setIsLogged } = useContext(MainContext);
+  const [userId, setUserId] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [searchedUser, setSearchedUser] = useState(null);
 
-  // Get chats start
-  const fetchChats = async () => {
-    setIsLoading(true);
-    const response = await userChats();
-    if (response[0] === 200) {
-      setChats(response[1]);
-    } else if (response[0] === 401) {
-      ToastAndroid.show('Session expired, please login.', ToastAndroid.SHORT);
-      await AsyncStorage.removeItem('auth_token');
-      await AsyncStorage.removeItem('auth_user');
-      navigation.navigate('Login');
+  useEffect(() => {
+    setIsLogged(true);
+  }, []);
+
+  const handleUserSearch = async () => {
+    if (!userId) {
       return;
-    } else {
+    }
+    setSearchedUser(null);
+    setLoading(true);
+    const result = await searchUser(1, userId);
+    console.log('result>>>', result);
+    if (result[0] === 200) {
+      setSearchedUser(result[1][0]);
+    } else if (result[0] === 404) {
+      ToastAndroid.show(result[1], ToastAndroid.SHORT);
+    } else if (result[0] === 403) {
+      ToastAndroid.show(result[1], ToastAndroid.SHORT);
+    }else {
       ToastAndroid.show('Something went wrong!', ToastAndroid.SHORT);
     }
-    setIsLoading(false);
+    setLoading(false);
   };
-  // Get chats end
-
-  // Get auth data start
-  const fetchAuth = async () => {
-    const auth_user = await AsyncStorage.getItem("auth_user");
-    // const auth_token = await AsyncStorage.getItem("auth_token");
-    if (!auth_user) {
-      ToastAndroid.show('Session expired, please login.', ToastAndroid.SHORT);
-      await AsyncStorage.removeItem('auth_token');
-      await AsyncStorage.removeItem('auth_user');
-      navigation.navigate('Login');
-      return;
-    }
-    setUser(auth_user);
-  };
-  // Get auth data end
-
-  useFocusEffect(
-    useCallback(() => {
-      setIsLogged(true);
-      fetchChats();
-      fetchAuth();
-    }, [])
-  );
-
-  useEffect(()=>{
-    if (!wsData){
-      return;
-    }
-    const status = wsData['status'];
-    if (status === 'msg') {
-      setChats(wsData['chats']);
-    }
-    else if (status === 'status'){
-      const members = wsData['members'].filter(member => member != user);
-      setActiveUsers(members);
-    }
-    else if (status === 'typing'){
-      let updatedChats;
-      if (wsData['isTyping']){
-        updatedChats = chats.map(chat => {
-          if (chat.username === wsData['sender']) {
-            return { ...chat, is_typing: true };
-          }
-          return chat;
-        });
-      }
-      else{
-        updatedChats = chats.map(chat => {
-          if (chat.username === wsData['sender']) {
-            return { ...chat, is_typing: false };
-          }
-          return chat;
-        });
-      }
-      if (updatedChats){
-        setChats(updatedChats);
-      }
-    }
-  }, [wsData]);
-
-  useEffect(()=>{
-    console.log('chats>>>', chats);
-    const membersData = chats.filter(chat => activeUsers.includes(chat.username) && !chat.is_blocked);
-    console.log('membersData>>>', membersData);
-    setActiveMembers(membersData);
-  }, [activeUsers, chats]);
-
-  // Render chats start
-  const renderItem = ({ item, index }) => (
-    <Animatable.View animation="fadeInUp" duration={500} delay={index * 100}>
-      <TouchableOpacity
-        style={styles.chatItem}
-        onPress={() => navigation.navigate('Chat', { userName: item.username })}
-      >
-        <Avatar src={item.blocked ? require('../assets/profile.png') : (item.profile_picture ? BASE_URL + item.profile_picture : null)} name={item.username} is_url={item.blocked ? false : true} />
-        <View style={styles.chatDetails}>
-          <Text style={styles.chatName}>{item.username}</Text>
-          <Text style={[
-            styles.chatMessage, 
-            { color: item.unseen_msgs > 0 || item.is_typing ? 'green' : '#999', fontWeight: item.unseen_msgs > 0 ? 'bold' : 'normal' }
-          ]}>{item.is_typing ? 'typing...' : (item.msg_type === 'Text' ? (item?.last_message?.length > 30 ? item?.last_message.slice(0, 30) + '...' : item.last_message) : item.msg_type)}</Text>
-        </View>
-        {item.unseen_msgs > 0 && <Text style={styles.unseenMsgs}>{item.unseen_msgs}</Text>}
-        <Text style={styles.chatTime}>{item.last_message_time}</Text>
-      </TouchableOpacity>
-    </Animatable.View>
-  );
-  // Render chats end
-
-  // Render active users start
-  const renderActiveUserItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.activeUserItem}
-      onPress={() => navigation.navigate('Chat', { userName: item.username })}
-    >
-      <View style={styles.activeUserContainer}>
-        <Avatar
-          src={item.is_blocked ? '' : (item.profile_picture ? BASE_URL + item.profile_picture : null)}
-          name={item.username}
-          is_url={item.is_blocked ? false : true}
-          style={styles.activeUserAvatar}
-        />
-        <View style={styles.onlineDot} />
-      </View>
-      <Text style={styles.activeUserName}>{item.username}</Text>
-    </TouchableOpacity>
-  );
-  // Render active users end
 
   return (
     <MyLayout>
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerText}>Chats</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Search by user ID"
+              value={userId}
+              onChangeText={setUserId}
+            />
+            <TouchableOpacity disabled={!userId} onPress={handleUserSearch} style={styles.iconContainer}>
+              <Icon name="search" size={20} color="#800925" />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {isLoading ? (
-          // Show loader while chats are loading
+        {loading && (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color="#000" />
+            <ActivityIndicator size="large" color="#800925" />
           </View>
-        ) : (
-          <>
-            {/* Active Users Section */}
-            {activeMembers.length > 0 && (
-              <FlatList
-                data={activeMembers}
-                renderItem={renderActiveUserItem}
-                keyExtractor={(item, index) => item.id}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.activeUsersList}
-              />
-            )}
-
-            {/* Chats Section */}
-            {chats.length === 0 ? (
-              <View style={styles.noChatsContainer}>
-                <Text style={styles.noChatsText}>No chats available</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={chats}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
-                showsVerticalScrollIndicator={false}
-              />
-            )}
-          </>
         )}
 
+        {searchedUser && !loading && (
+          <View style={styles.userDetailsContainer}>
+            <Image 
+              source={{ uri: METRI_MEDIA_URL + searchedUser.profile_picture }} 
+              style={styles.profilePicture} 
+            />
+            <Text style={styles.userName}>{searchedUser.username}</Text>
+            
+            {/* User details */}
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Name:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.first_name} {searchedUser.last_name}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Profile for:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.profile_for}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Religion:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.religion}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Living in:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.living_in}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Gender:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.gender}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Community:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.community}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Time of Birth:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.time_of_bith}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Education:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.education}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Height:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.height}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Income:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.income}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Marital Status:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.marital_status}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Occupation:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.occupation}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Skin Tone:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.skin_tone}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Alcoholic:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.alcoholic}</Text>
+            </View>
+            <View style={styles.userDetails}>
+              <Text style={styles.userInfoLabel}>Smoker:</Text>
+              <Text style={styles.userInfoValue}>{searchedUser.smoker}</Text>
+            </View>
+            <Text style={styles.userAboutLabel}>About:</Text>
+            <Text style={styles.userAboutValue}>{searchedUser.about_me}</Text>
+          </View>
+        )}
       </View>
     </MyLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    padding: 20,
-    marginTop: 35,
-    backgroundColor: '#fff',
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  activeUsersList: {
-    paddingHorizontal: 10,
-    paddingBottom: 5,
-    height: 80,
-    backgroundColor: '#fff',
-    minWidth: '100%',
-  },
-  activeUserItem: {
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  activeUserContainer: {
-    position: 'relative',
-  },
-  activeUserAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  onlineDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'green',
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  activeUserName: {
-    marginTop: 5,
-    fontSize: 12,
-    color: '#333',
-    textAlign: 'center',
-  },
-  chatItem: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    padding: 15,
-    marginBottom: 1,
-    alignItems: 'center',
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  chatDetails: {
+  container: {
     flex: 1,
-    marginLeft: 10,
+    padding: 20,
+    backgroundColor: '#fff',
   },
-  chatName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  chatMessage: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  unseenMsgs: {
-    fontSize: 10,
-    color: '#fff',
-    backgroundColor: 'green',
-    padding: 3,
-    borderRadius: 50,
-    width: 20,
-    height: 20,
+  header: {
+    fontSize: 24,
+    marginBottom: 20,
     textAlign: 'center',
-    marginRight: 15,
+    marginTop: 35,
   },
-  chatTime: {
-    fontSize: 12,
-    color: '#999',
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#800925',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
   },
-  noChatsContainer: {
+  input: {
+    height: 50,
+    flex: 1,
+    paddingHorizontal: 10,
+  },
+  iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50,
-  },
-  noChatsText: {
-    fontSize: 18,
-    color: '#999',
+    paddingLeft: 10,
   },
   loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 100,
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
   },
-  loadingText: {
-    marginTop: 10,
+  userDetailsContainer: {
+    marginTop: 20,
+    padding: 15,
+    // borderRadius: 8,
+    // borderWidth: 1,
+    // borderColor: '#007BFF',
+    // backgroundColor: '#f9f9f9',
+    // elevation: 3,
+    // shadowColor: '#000',
+    // shadowOpacity: 0.2,
+    // shadowRadius: 4,
+    // shadowOffset: { width: 0, height: 2 },
+  },
+  profilePicture: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
+  userName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  userDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  userInfoLabel: {
     fontSize: 16,
-    color: '#666',
+    color: '#555',
   },
+  userInfoValue: {
+    fontSize: 16,
+    color: '#000',
+  },
+  userAboutLabel: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  userAboutValue: {
+    textAlign: 'center'
+  }
 });

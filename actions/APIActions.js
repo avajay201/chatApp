@@ -187,3 +187,39 @@ export const reportUser = async(data)=>{
         };
     }
 };
+
+export const searchUser = async(user_id, customID)=>{
+    try{
+        const response = await axios.get(`${ENDPOINTS.searchUser}?custom_id=${customID}&user_id=${user_id}`);
+        return [200, response.data];
+    }
+    catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};
+
+export const searchGifs = async(query)=>{
+    try{
+        const response = await axios.get(`${ENDPOINTS.searchGifs}&q=${query}`);
+        return [200, response.data];
+    }
+    catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};
+
+export const scriptions = async()=>{
+    try{
+        const response = await axios.get(ENDPOINTS.subscriptions);
+        return [200, response.data];
+    }
+    catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};

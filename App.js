@@ -9,7 +9,10 @@ import Home from './screens/Home';
 import Profile from './screens/Profile';
 import Calls from './screens/Calls';
 import Chat from './screens/chats/Chat';
+import Chats from './screens/chats/Chats';
 import AudioCall from './screens/call/AudioCall';
+import Payment from './screens/Payment';
+import Subscriptions from './screens/Subscriptions';
 import { MainProvider } from './others/MyContext';
 
 import * as Device from 'expo-device';
@@ -132,7 +135,7 @@ function App() {
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size='large' color='#009387' />
+        <ActivityIndicator size='large' color='#800925' />
       </View>
     );
   };
@@ -174,6 +177,13 @@ function App() {
               header: (props) => null,
           }} />
           <Stack.Screen
+            name='Chats'
+            component={Chats}
+            options={{
+              headerTitle: '',
+              header: (props) => null,
+          }} />
+          <Stack.Screen
             name='Calls'
             component={Calls}
             options={{
@@ -190,6 +200,20 @@ function App() {
           <Stack.Screen
             name='AudioCall'
             component={AudioCall}
+            options={{
+              headerTitle: '',
+              header: (props) => null,
+          }} />
+          <Stack.Screen
+            name='Payment'
+            component={Payment}
+            options={{
+              headerTitle: '',
+              header: (props) => null,
+          }} />
+          <Stack.Screen
+            name='Subscriptions'
+            component={Subscriptions}
             options={{
               headerTitle: '',
               header: (props) => null,

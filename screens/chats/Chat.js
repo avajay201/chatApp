@@ -12,6 +12,8 @@ import {
   Animated,
   SectionList,
   ScrollView,
+  Button,
+  FlatList,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Animatable from "react-native-animatable";
@@ -25,6 +27,7 @@ import {
   blockUser,
   sendMediaMessage,
   reportUser,
+  searchGifs,
 } from "../../actions/APIActions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SOCKET_URL } from "../../actions/API";
@@ -34,6 +37,7 @@ import { Avatar } from "../comps/chats/Avatar";
 import * as ImagePicker from "expo-image-picker";
 import { Video } from "expo-av";
 import { Picker } from '@react-native-picker/picker';
+
 
 const MESSAGE_HEIGHT = 100; // message height
 const Chat = ({ navigation }) => {
@@ -63,7 +67,51 @@ const Chat = ({ navigation }) => {
   const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB in bytes
   const [reportReason, setReportReason] = useState('');
   const [reportMessage, setReportMessage] = useState('');
+  const [gifsSearchQuery, setGifsSearchQuery] = useState('');
+  const [gifs, setGifs] = useState([]);
+  const [gifsModal, setGifsModal] = useState(false);
+  const [gifsLoading, setGifsLoading] = useState(false);
   let chatName;
+
+  // Load gifs start
+  const openGifPicker = async () => {
+    setGifs([]);
+    setGifsLoading(true);
+    setGifsModal(true);
+    const result = await searchGifs(gifsSearchQuery || 'diwali');
+    console.log('result>>>', result);
+    if (result[0] === 200){
+      setGifsLoading(false);
+      for (let gif of result[1].results){
+        const gifUri = gif.media_formats.gif.url;
+        setGifs((prev) => {
+          if (!prev.includes(gifUri)) {
+            return [...prev, gifUri];
+          }
+          return prev;
+        });
+      };
+    }
+    else{
+      ToastAndroid.show('Failed to load gifs!', ToastAndroid.SHORT);
+      setGifsModal(false);
+    }
+  };
+  // Load gifs end
+
+  // Close gifs modal start
+  const closeGifsModal = ()=>{
+    setGifs([]);
+    setGifsModal(false);
+    setGifsSearchQuery('');
+  };
+  // Close gifs modal end
+
+  // Gifs search start
+  const serachGifs = ()=>{
+    openGifPicker();
+  };
+  // Gifs search end
 
   // scroll messages start
   useEffect(() => {
@@ -408,13 +456,17 @@ const Chat = ({ navigation }) => {
   // Render message section end
 
   // Send message start
-  const sendMessage = async () => {
-    if (selectedMedia.length === 0 && !newMessage.trim()) {
+  const sendMessage = async (isGif=false) => {
+    if (isGif){
+      closeGifsModal();
+    }
+    console.log('Gif sending...', isGif);
+    if ((selectedMedia.length === 0 && !newMessage.trim()) && !isGif) {
       return;
     }
     try {
       setMessageSendingLoader(true);
-      if (selectedMedia.length > 0) {
+      if (selectedMedia.length > 0 && chatWS.current) {
         for (media of selectedMedia) {
           // File validation start
           let msgType;
@@ -431,17 +483,17 @@ const Chat = ({ navigation }) => {
           // File validation end
 
           const formData = new FormData();
-          formData.append("type", msgType);
-          formData.append("name", roomName);
-          formData.append("file", {
+          formData.append('type', msgType);
+          formData.append('name', roomName);
+          formData.append('file', {
             uri: media.uri,
-            type: media.type === "image" ? "image/jpeg" : "video/mp4",
+            type: media.type === 'image' ? 'image/jpeg' : 'video/mp4',
             name: media.fileName,
           });
           const response = await sendMediaMessage(formData);
           if (response[0] === 201) {
             setMessages((prev) => {
-              if (prev.hasOwnProperty("Today")) {
+              if (prev.hasOwnProperty('Today')) {
                 return {
                   ...prev,
                   Today: [...prev.Today, response[1]],
@@ -461,6 +513,11 @@ const Chat = ({ navigation }) => {
             };
             chatWS.current.send(JSON.stringify({ message }));
             // Update to receiver end
+          } else if (response[0] === 401) {
+            ToastAndroid.show("Session expired, please login.", ToastAndroid.SHORT);
+            await AsyncStorage.removeItem("auth_token");
+            await AsyncStorage.removeItem("auth_user");
+            navigation.navigate("Login");
           } else {
             ToastAndroid.show("Failed to send file!", ToastAndroid.SHORT);
           }
@@ -472,11 +529,48 @@ const Chat = ({ navigation }) => {
           content: newMessage,
           sender: user,
           receiver: userName,
-          status: "msg",
+          status: 'msg',
           type: "text",
         };
         chatWS.current.send(JSON.stringify({ message }));
         setNewMessage("");
+        setMessageSendingLoader(false);
+      } else if (isGif && chatWS.current){
+        const formData = new FormData();
+        formData.append('type', 'gif');
+        formData.append('name', roomName);
+        formData.append('url', isGif);
+        const response = await sendMediaMessage(formData);
+        if (response[0] === 201) {
+          setMessages((prev) => {
+            if (prev.hasOwnProperty('Today')) {
+              return {
+                ...prev,
+                Today: [...prev.Today, response[1]],
+              };
+            } else {
+              return {
+                ...prev,
+                Today: [response[1]],
+              };
+            }
+          });
+
+          // Update to receiver start
+          const message = {
+            message: response[1],
+            status: "media_update",
+          };
+          chatWS.current.send(JSON.stringify({ message }));
+          // Update to receiver end
+        } else if (response[0] === 401) {
+          ToastAndroid.show("Session expired, please login.", ToastAndroid.SHORT);
+          await AsyncStorage.removeItem("auth_token");
+          await AsyncStorage.removeItem("auth_user");
+          navigation.navigate("Login");
+        } else {
+          ToastAndroid.show("Failed to send file!", ToastAndroid.SHORT);
+        }
         setMessageSendingLoader(false);
       } else {
         ToastAndroid.show("Failed to send this message!", ToastAndroid.SHORT);
@@ -760,7 +854,7 @@ const Chat = ({ navigation }) => {
             onPress={handleAudioCall}
             style={styles.callIcon}
           >
-            <MaterialIcons name="call" size={24} color="#000" />
+            <MaterialIcons name="call" size={24} color="#800925" />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -768,7 +862,7 @@ const Chat = ({ navigation }) => {
             onPress={handleVideoCall}
             style={styles.callIcon}
           >
-            <MaterialIcons name="videocam" size={24} color="#000" />
+            <MaterialIcons name="videocam" size={24} color="#800925" />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -776,7 +870,7 @@ const Chat = ({ navigation }) => {
             onPress={toggleModal}
             style={styles.menuIcon}
           >
-            <MaterialIcons name="more-vert" size={24} color="#000" />
+            <MaterialIcons name="more-vert" size={24} color="#800925" />
           </TouchableOpacity>
         </View>
       </View>
@@ -784,7 +878,7 @@ const Chat = ({ navigation }) => {
       {isLoading ? (
         // Loader
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#000" />
+          <ActivityIndicator size="large" color="#800925" />
           <Text style={styles.loadingText}></Text>
         </View>
       ) : (
@@ -941,55 +1035,99 @@ const Chat = ({ navigation }) => {
       </Modal>
 
       {/* Report modal */}
-<Modal
-  animationType="fade"
-  transparent={true}
-  visible={reportModalVisible}
-  onRequestClose={() => setReportModalVisible(false)}
->
-  <View style={styles.reportModalBackground}>
-    <View style={styles.reportModalContainer}>
-      <Text style={styles.reportModalHeading}>Report User</Text>
-
-      <Picker
-        selectedValue={reportReason}
-        onValueChange={(itemValue) => setReportReason(itemValue)}
-        style={styles.reportPicker}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={reportModalVisible}
+        onRequestClose={() => setReportModalVisible(false)}
       >
-        <Picker.Item label="Select a reason..." value="" />
-        <Picker.Item label="Spam" value="spam" />
-        <Picker.Item label="Harassment" value="harassment" />
-        <Picker.Item label="Offensive Content" value="offensive" />
-      </Picker>
+        <View style={styles.reportModalBackground}>
+          <View style={styles.reportModalContainer}>
+            <Text style={styles.reportModalHeading}>Report User</Text>
 
-      <TextInput
-        style={styles.reportInput}
-        placeholder="Describe the issue(optional)..."
-        placeholderTextColor="#999"
-        multiline
-        numberOfLines={4}
-        value={reportMessage}
-        onChangeText={setReportMessage}
-      />
+            <Picker
+              selectedValue={reportReason}
+              onValueChange={(itemValue) => setReportReason(itemValue)}
+              style={styles.reportPicker}
+            >
+              <Picker.Item label="Select a reason..." value="" />
+              <Picker.Item label="Spam" value="spam" />
+              <Picker.Item label="Harassment" value="harassment" />
+              <Picker.Item label="Offensive Content" value="offensive" />
+            </Picker>
 
-      <View style={styles.reportButtonContainer}>
-        <TouchableOpacity
-          style={styles.reportCancelButton}
-          onPress={() => setReportModalVisible(false)}
-        >
-          <Text style={styles.reportCancelText}>Cancel</Text>
-        </TouchableOpacity>
+            <TextInput
+              style={styles.reportInput}
+              placeholder="Describe the issue(optional)..."
+              placeholderTextColor="#999"
+              multiline
+              numberOfLines={4}
+              value={reportMessage}
+              onChangeText={setReportMessage}
+            />
 
-        <TouchableOpacity
-          style={styles.reportSubmitButton}
-          onPress={reportsUser}
-        >
-          <Text style={styles.reportSubmitText}>Submit Report</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
+            <View style={styles.reportButtonContainer}>
+              <TouchableOpacity
+                style={styles.reportCancelButton}
+                onPress={() => {setReportModalVisible(false); setReportMessage(''); setReportReason('')}}
+              >
+                <Text style={styles.reportCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.reportSubmitButton}
+                onPress={reportsUser}
+              >
+                <Text style={styles.reportSubmitText}>Submit Report</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Gifs modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={gifsModal}
+        onRequestClose={closeGifsModal}
+      >
+        <View style={styles.gifsModalContainer}>
+          <View style={styles.gifsModalView}>
+            <Text style={styles.gifsModalTitle}>Send a GIF</Text>
+
+            <TextInput
+              style={styles.gifsSearchInput}
+              placeholder="Search GIFs"
+              value={gifsSearchQuery}
+              onChangeText={setGifsSearchQuery}
+              onSubmitEditing={serachGifs}
+            />
+
+            {gifsLoading ? (
+              <ActivityIndicator size="large" color="#800925" />
+            ) : (
+              <FlatList
+                data={gifs}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => sendMessage(item)}>
+                    <Image
+                      source={{ uri: item }}
+                      style={styles.gifImage}
+                    />
+                  </TouchableOpacity>
+                )}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              />
+            )}
+            <View style={styles.gifsModalCloseButton}>
+              <Button title="Close" color={"#800925"} onPress={closeGifsModal} />
+            </View>
+          </View>
+        </View>
+      </Modal>
 
 
       {/* Message image preview Modal */}
@@ -1064,11 +1202,27 @@ const Chat = ({ navigation }) => {
                 name="image"
                 size={45}
                 color={
-                  newMessage || messageSendingLoader ? "#d3d3d3" : "#009387"
+                  newMessage || messageSendingLoader ? "#d3d3d3" : "#800925"
                 }
               />
             </TouchableOpacity>
 
+            {/* Button for send gifs */}
+            <TouchableOpacity
+              onPress={openGifPicker}
+              style={styles.mediaButton}
+              disabled={newMessage != "" || messageSendingLoader ? true : false}
+            >
+              <MaterialIcons
+                name="gif-box"
+                size={45}
+                color={
+                  newMessage || messageSendingLoader ? "#d3d3d3" : "#800925"
+                }
+              />
+            </TouchableOpacity>
+
+            {/* Button for send message */}
             <TouchableOpacity
               disabled={
                 messageSendingLoader
@@ -1086,13 +1240,13 @@ const Chat = ({ navigation }) => {
                   backgroundColor: messageSendingLoader
                     ? "#d3d3d3"
                     : newMessage || selectedMedia.length > 0
-                    ? "#009387"
+                    ? "#800925"
                     : "#d3d3d3",
                 },
               ]}
             >
               {messageSendingLoader ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color="#800925" />
               ) : (
                 <MaterialIcons name="send" size={24} color="#fff" />
               )}
@@ -1113,9 +1267,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
-    marginTop: 35,
     backgroundColor: "#fff",
     justifyContent: "space-between",
+    marginTop: 35,
   },
   backButton: {
     paddingRight: 10,
@@ -1214,6 +1368,43 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 10,
+  },
+  gifsModalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  gifsModalView: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+  },
+  gifsModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#800925',
+  },
+  gifImage: {
+    width: 100,
+    height: 100,
+    marginRight: 10,
+    borderRadius: 10,
+  },
+  gifsModalCloseButton: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  gifsSearchInput: {
+    height: 40,
+    width: '100%',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginBottom: 20,
   },
   messageImagePrevModalContainer: {
     flex: 1,
@@ -1448,6 +1639,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#800925",
   },
   confirmButtonContainer: {
     flexDirection: "row",
@@ -1462,17 +1654,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: "#009387",
+    borderColor: "#800925",
   },
   confirmCancelText: {
-    color: "#009387",
+    color: "#800925",
     fontSize: 16,
   },
   confirmClearButton: {
     flex: 1,
     padding: 10,
     alignItems: "center",
-    backgroundColor: "#009387",
+    backgroundColor: "#800925",
     borderRadius: 5,
   },
   confirmClearText: {
@@ -1502,6 +1694,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#800925",
   },
   reportPicker: {
     height: 50,
@@ -1515,7 +1708,7 @@ const styles = StyleSheet.create({
   },
   reportInput: {
     width: "100%",
-    borderColor: "#ddd",
+    borderColor: "#800925",
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,
@@ -1535,17 +1728,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: "#009387",
+    borderColor: "#800925",
   },
   reportCancelText: {
-    color: "#009387",
+    color: "#800925",
     fontSize: 16,
   },
   reportSubmitButton: {
     flex: 1,
     padding: 10,
     alignItems: "center",
-    backgroundColor: "#009387",
+    backgroundColor: "#800925",
     borderRadius: 5,
   },
   reportSubmitText: {

@@ -109,8 +109,8 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    marginTop: 35,
     backgroundColor: '#fff',
+    marginTop: 35,
   },
   headerText: {
     fontSize: 24,
