@@ -1,306 +1,285 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  PermissionsAndroid,
-  ToastAndroid,
-} from 'react-native';
-import { mediaDevices, RTCPeerConnection, RTCView, RTCIceCandidate, MediaStream } from 'react-native-webrtc';
-import { AC_SOCKET_URL } from './../../actions/API';
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRoute } from "@react-navigation/native";
-import { useFocusEffect } from "@react-navigation/native";
+import React, {useState, useRef, useEffect} from "react";
+import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
+import Button from "./Button";
+import GettingCall from "./GettingCall";
+import Video from "./Video";
+import { RTCPeerConnection, MediaStream, RTCIceCandidate, RTCSessionDescription } from 'react-native-webrtc';
+import Utils from "./Utils";
+import { setDoc, doc, addDoc, collection, onSnapshot, updateDoc, getDoc } from 'firebase/firestore';
+import db from './../../others/FBSetup';
 
 
 const configuration = {
-  iceServers: [
-    {
-      urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"],
-    },
-  ],
-  iceCandidatePoolSize: 10,
+	iceServers: [
+		{
+			urls: 'stun:stun.l.google.com:19302'
+		}
+	]
 };
 
-const AudioCall = ({ navigation }) => {
-  const route = useRoute();
-  const { userName } = route.params;
-  const [roomName, setRoomName] = useState(null);
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [micPermission, setMicPermission] = useState(false);
-  // let [localStream, setLocalStream] = useState(null);
-  let localStream = new MediaStream()
-  let [remoteStream, setRemoteStream] = useState(null);
-  const [myStream, setMyStream] = useState(null);
-  const localStreamRef = useRef(new MediaStream());
-  let remoteStreamRef = useRef(new MediaStream());
-  const callWS = useRef();
-  const peerRef = useRef();
-  const remoteVideo = useRef();
+let sessionConstraints = {
+	mandatory: {
+		OfferToReceiveAudio: true,
+		OfferToReceiveVideo: true,
+		VoiceActivityDetection: true
+	}
+};
 
-  const fetchAuth = async () => {
-    const auth_user = await AsyncStorage.getItem("auth_user");
-    const auth_token = await AsyncStorage.getItem("auth_token");
-    if (!auth_user || !auth_token) {
-      ToastAndroid.show("Session expired, please login.", ToastAndroid.SHORT);
-      await AsyncStorage.removeItem("auth_token");
-      await AsyncStorage.removeItem("auth_user");
-      navigation.navigate("Login");
-      return;
-    }
+export default AudioCall = () => {
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [gettingCall, setGettingCall] = useState(false);
+  const pc = useRef(new MediaStream());
+  const connecting = useRef(false);
 
-    setUser(auth_user);
-    setToken(auth_token);
-    if (auth_user && userName) {
-      const callName = `${auth_user}__${userName}`;
-      setRoomName(callName);
-    } else {
-      ToastAndroid.show("Something went wrong!", ToastAndroid.SHORT);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchAuth();
-    }, [])
-  );
-
-  useEffect(() => {
-    let stream;
-    const startVideo = async () => {
-      try {
-        stream = await mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
-
-        // setLocalStream(stream);
-        localStream = stream;
-        setMyStream(stream);
-
-      } catch (error) {
-        alert('Media access denied!');
-        navigate('/');
+  useEffect(()=>{
+    const cRef = doc(collection(db, 'meet'), 'chatId');
+    const subscribe = onSnapshot(cRef, (snapshot) => {
+      const data = snapshot.data();
+      if (pc.current && !pc.current.remoteDescription && data && data.answer){
+        pc.current.setRemoteDescription(new RTCSessionDescription(data.answer));
       }
-    };
 
-    startVideo();
-
-    return () => {
-    };
-  }, []);
-
-  const wsMessagehandler = (event)=>{
-    let parsedData = JSON.parse(event.data);
-    let peerUser = parsedData['message']['peer'];
-    let action = parsedData['message']['action'];
-    console.log('Message:', parsedData);
-
-    if (user === peerUser) return;
-    let receive_channel_name = parsedData['message']['receive_channel_name'];
-
-    if (action === 'new-peer'){
-      createOffer(receive_channel_name)
-      return;
-    }
-    else if (action === 'new-offer') {
-      receive_channel_name = parsedData.message.message.receive_channel_name;
-      const offer = parsedData.message.message.sdp;
-      // console.log('New offer>>>>', offer);
-      createAnswer(offer, receive_channel_name);
-    }
-    else if (action === 'new-answer') {
-      const answer = parsedData.message.message.sdp;
-      // console.log('New answer>>>>', answer);
-      peerRef.current.setRemoteDescription(answer);
-    }
-  };
-
-  const addLocalTracks = (peer)=>{
-    localStream.getTracks().forEach(track=>{
-      peer.addTrack(track, localStream);
-    });
-  };
-
-  const setOnTrack = (peer)=>{
-    let remoteMediaStream = new MediaStream();
-    peer.addEventListener('track', async(event) => {
-      console.log('Tracks found+++++++++++++++++++++++++');
-      remoteMediaStream.addTrack(event.track, remoteMediaStream);
-      setRemoteStream(remoteMediaStream);
-    });
-  };
-
-  const createOffer = async(receive_channel_name)=>{
-    console.log('Creating offer...');
-    let peer = new RTCPeerConnection(configuration);
-
-    peer.onicegatheringstatechange = () => {
-      console.log('ICE gathering state:', peer.iceGatheringState);
-    };
-
-    peer.onconnectionstatechange = () => {
-      console.log('Connection state:', peer.connectionState);
-      if (peer.connectionState === 'failed') {
-        console.error('ICE connection failed. Restarting ICE...');
-        peer.restartIce();  // Restart ICE when it fails
+      if (data && data.offer && !connecting.current){
+        setGettingCall(true);
       }
-    };
-
-    peer.addEventListener('icecandidateerror', (event) => {
-      console.error('ICE Candidate Error:', event);
     });
 
-    // localStream.getTracks().forEach((track) => {
-    //   peer.addTrack(track, localStream);
-    // });
-
-    addLocalTracks(peer);
-
-    setOnTrack(peer);
-
-    peer.onicecandidate = (event) => {
-      if (event.candidate) {
-        console.log('New ICE candidate:', event.candidate);
-      } else {
-        console.log('All ICE candidates have been gathered.');
-        sendSignal('new-offer', {
-          sdp: peer.localDescription,
-          receive_channel_name: receive_channel_name,
-        });
-      }
-    };
-
-    try {
-      const offer = await peer.createOffer(
-        {
-          offerToReceiveAudio: true,
-          offerToReceiveVideo: true,
+    const calleeCollectionRef = collection(cRef, 'callee');
+    const subscribeDelete = onSnapshot(calleeCollectionRef, (snapshot) => {
+      snapshot.docChanges().forEach(change =>{
+        if (change.type == 'removed'){
+          hangUp();
         }
-      );
-      await peer.setLocalDescription(offer);
-      // peer.restartIce();
-      console.log('Offer created and set:', peer.localDescription);
-    } catch (error) {
-      console.error('Error creating or setting offer:', error);
-    }
-
-    peerRef.current = peer;
-
-  };
-
-  const createAnswer = async (offer, receiveChannelName) => {
-    const peer = new RTCPeerConnection(configuration);
-    addLocalTracks(peer);
-    setOnTrack(peer);
-
-    peer.onicecandidate = (event) => {
-      if (!event.candidate) {
-        sendSignal('new-answer', {
-          sdp: peer.localDescription,
-          receive_channel_name: receiveChannelName,
-        });
-      }
-    };
-    try{
-      await peer.setRemoteDescription(offer);
-      const answer = await peer.createAnswer();
-      await peer.setLocalDescription(answer);
-      peerRef.current = peer;
-    }
-    catch(error){
-      console.error('Error creating or setting answer:', error);
-    }
-  };
-
-  useEffect(() => {
-    if (!micPermission) {
-      requestMicrophonePermission();
-    }
-
-    if (!roomName || !token || !user || !micPermission || callWS.current) {
-      return;
-    }
-
-    const ws = new WebSocket(`${AC_SOCKET_URL}/${roomName}/${token}/`);
-    ws.onopen = () => {
-      callWS.current = ws;
-      sendSignal('new-peer', {});
-      console.log('WebSocket connected');
-    };
-
-    ws.addEventListener('message', wsMessagehandler);
-
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
-      callWS.current = null;
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, [user, token, roomName, micPermission]);
-
-  const requestMicrophonePermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        setMicPermission(true);
-        console.log('Microphone permission granted');
-      } else {
-        ToastAndroid.show('Microphone permission denied!', ToastAndroid.SHORT);
-        navigation.navigate('Home');
-      }
-    } catch (err) {
-      ToastAndroid.show('Microphone permission issue!', ToastAndroid.SHORT);
-      navigation.navigate('Home');
-    }
-  };
-
-  const sendSignal = (action, message)=>{
-    if (!callWS.current){
-      return;
-    }
-    let jsonStr = JSON.stringify({
-      'peer': user,
-      'action': action,
-      'message': message,
+      });
     });
-    callWS.current.send(jsonStr);
+
+    return ()=>{
+      subscribe();
+      subscribeDelete();
+    }
+  }, []);
+  
+  const setupWebRtc = async () => {
+    pc.current = new RTCPeerConnection(configuration);
+    const stream = await Utils.getStream()
+    if (stream){
+      setLocalStream(stream);
+      stream.getTracks().forEach(track => {
+        // console.log('Adding local track:', track);
+        pc.current.addTrack(track, stream);
+      });
+    }
+
+    pc.current.oniceconnectionstatechange = (event) => {
+      console.log('ICE connection state:', pc.current.iceConnectionState);
+    };
+
+    pc.current.ontrack = (event) => {
+      const [remoteStream] = event.streams;
+      // if (remoteStream) {
+      // console.log('Remote stream received:', remoteStream);
+      setRemoteStream(remoteStream); // Ensure you update the state with the remote stream
+      // }
+    };
   };
+  const create = async () => {
+    // console.log('Calling...');
+    connecting.current = true;
+
+    await setupWebRtc();
+
+    const cRef = doc(collection(db, 'meet'), 'chatId');
+
+    collectIceCandidates(cRef, 'caller', 'callee');
+
+    if (pc.current){
+      const offer = await pc.current.createOffer(sessionConstraints)
+      pc.current.setLocalDescription(offer);
+
+      const cWithOffer = {
+        offer: {
+          type: offer.type,
+          sdp: offer.sdp,
+        },
+      }
+
+      // cRef.set(cWithOffer);
+      // await setDoc(cRef, cWithOffer);
+      try {
+        await setDoc(cRef, cWithOffer);
+        console.log("Chat created successfully");
+      } catch (error) {
+          console.error("Error creating chat: ", error);
+      }
+    }
+
+  };
+
+  const join = async () => {
+    try {
+      console.log('Joining the call...');
+      connecting.current = true;
+      setGettingCall(false);
+  
+      // Get the document reference and the offer data
+      const cRef = doc(collection(db, 'meet'), 'chatId');
+      const docSnapshot = await getDoc(cRef);
+      const offerData = docSnapshot.data()?.offer;
+  
+      // Ensure offer data exists
+      if (!offerData || !offerData.sdp || !offerData.type) {
+        console.error('Invalid offer data:', offerData);
+        return;
+      }
+  
+      // console.log('Offer received:', offerData);
+  
+      await setupWebRtc(); // Initialize WebRTC
+  
+      // Collect ICE candidates for callee and caller
+      collectIceCandidates(cRef, 'callee', 'caller');
+  
+      if (pc.current) {
+        // Set the remote description with the received offer
+        const offer = new RTCSessionDescription({
+          type: offerData.type,
+          sdp: offerData.sdp,
+        });
+        await pc.current.setRemoteDescription(offer);
+  
+        // Create an answer for the call
+        const answer = await pc.current.createAnswer(sessionConstraints);
+        await pc.current.setLocalDescription(answer);
+  
+        // Log the created answer
+        // console.log('Answer created:', answer);
+  
+        // Prepare the answer data to update Firestore
+        const cWithAnswer = {
+          answer: {
+            type: answer.type,
+            sdp: answer.sdp,
+          },
+        };
+  
+        // Update Firestore with the answer
+        await updateDoc(cRef, cWithAnswer);
+        // console.log('Answer sent to Firestore');
+      }
+    } catch (error) {
+      console.error('Error during join call:', error);
+    }
+  };
+  
+
+  const hangUp = async () => {
+    setGettingCall(false);
+    connecting.current = false;
+    // streamCleanUp();
+    // firestoreCleanUp();
+    if (pc.current){
+      pc.current.close();
+    };
+  };
+
+  const streamCleanUp = async () => {
+    if (localStream){
+      localStream.getTracks(track => track.stop());
+      // localStream.release();
+    }
+    setLocalStream(null);
+    setRemoteStream(null);
+  };
+
+  const firestoreCleanUp = async () => {
+    const cRef = doc(collection(db, 'meet'), 'chatId');
+    if (cRef){
+      const calleeCandidate = collection(cRef, 'callee');
+      const deleteCalleePromises = calleeCandidate.docs.map(async (candidate) => {
+          await candidate.ref.delete();
+      });
+      await Promise.all(deleteCalleePromises);
+
+      const callerCandidate = collection(cRef, 'caller');
+      const deleteCallerPromises = callerCandidate.docs.map(async (candidate) => {
+          await candidate.ref.delete();
+      });
+      await Promise.all(deleteCallerPromises);
+
+      await deleteDoc(cRef);
+    }
+  };
+
+  const collectIceCandidates = async (cRef, localName, remoteName) => {
+    // Create references to the local and remote candidate collections
+    const localCandidateCollection = collection(db, `meet/${cRef.id}/${localName}`);
+    const remoteCandidateCollection = collection(db, `meet/${cRef.id}/${remoteName}`);
+
+    if (pc.current) {
+        pc.current.onicecandidate = (event) => {
+          console.log('ICE candidate generated:', event.candidate);
+            if (event.candidate) {
+                // Add the ICE candidate to the local candidate collection
+                addDoc(localCandidateCollection, event.candidate.toJSON());
+            }
+        };
+    }
+
+    // Listen for changes in the remote candidates collection
+    onSnapshot(remoteCandidateCollection, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === 'added') {
+                const candidate = new RTCIceCandidate(change.doc.data());
+                pc.current?.addIceCandidate(candidate);
+            }
+        });
+    });
+  };
+
+
+  if (gettingCall){
+    return <GettingCall join={join} hangUp={hangUp} />
+  }
+
+  if (localStream){
+    return(
+      <>
+        <Video
+        hangUp={hangUp}
+        localStream={localStream}
+        remoteStream={remoteStream}
+        />
+      </>
+    )
+  }
 
   return (
-    <View>
-      <Text>Video Call</Text>
-      {myStream && (
-        <RTCView
-          streamURL={myStream.toURL()}
-          style={{ width: '100%', height: '50%' }} />
-      )}
-      {remoteStream && (
-        <RTCView
-          streamURL={remoteStream.toURL()}
-          style={{ width: '100%', height: '50%' }}
-          mirror={true}
-        />
-      )}
-    </View>
+    <>
+      <View style={styles.container}>
+        <Button iconName='video' backgroundColor='grey' onPress={create} />
+      </View>
+    </>
   );
+
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    backgroundColor: "#800925",
+    paddingBottom: 20,
   },
-  status: {
-    fontSize: 24,
-    marginBottom: 20,
+  callButton: {
+    backgroundColor: '#fff',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+  },
+  buttonText: {
+    color: '#000',
+    fontSize: 18,
   },
 });
-
-export default AudioCall;
