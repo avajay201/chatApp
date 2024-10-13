@@ -14,6 +14,7 @@ import AudioCall from './screens/call/AudioCall';
 import Payment from './screens/Payment';
 import Subscriptions from './screens/Subscriptions';
 import { MainProvider } from './others/MyContext';
+// import RtcEngine from 'react-native-agora';
 
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
@@ -41,7 +42,14 @@ function App() {
   const notificationListener = useRef();
   const responseListener = useRef();
 
+  // const initAgora = async () => {
+  //   const agoraEngine = await RtcEngine.create('766db603cbf5442eb0afd1adb6fd14a9');
+  //   agoraEngine.enableVideo();
+  // };
+
   useEffect(() => {
+    // initAgora();
+
     registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
 
     if (Platform.OS === 'android') {

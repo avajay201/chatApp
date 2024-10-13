@@ -27,7 +27,7 @@ const NavBar = () => {
   return (
     <View style={styles.navbarContainer}>
       {renderNavItem('Home', 'Home', 'home-outline', 'home')}
-      {renderNavItem('Subscriptions', 'Subscriptions', 'subscriptions', 'subscriptions')}
+      {renderNavItem('Subscriptions', 'Subscriptions', 'chatbox-outline', 'chatbox-ellipses')}
       {renderNavItem('Chats', 'Chats', 'chatbox-outline', 'chatbox-ellipses')}
       {renderNavItem('Calls', 'Calls', 'call-outline', 'call')}
       {renderNavItem('Profile', 'Profile', 'person-outline', 'person')}
