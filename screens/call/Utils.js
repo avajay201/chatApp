@@ -20,7 +20,7 @@ export default class Utils {
                 heigth: 480,
                 frameRate: 30,
                 facingMode: (isFront ? 'user' : 'environment'),
-                deviceId: videoSourceId
+                deviceId: videoSourceId,
             }
         });
         // console.log('stream from Class base>>>>>>>***************', stream);

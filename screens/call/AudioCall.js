@@ -6,15 +6,15 @@ import Video from "./Video";
 import { RTCPeerConnection, MediaStream, RTCIceCandidate, RTCSessionDescription } from 'react-native-webrtc';
 import Utils from "./Utils";
 import { setDoc, doc, addDoc, collection, onSnapshot, updateDoc, getDoc } from 'firebase/firestore';
-import db from './../../others/FBSetup';
+import db from '../../others/FBSetup';
 
 
 const configuration = {
-	iceServers: [
-		{
-			urls: 'stun:stun.l.google.com:19302'
-		}
-	]
+	iceTransportPolicy: 'all',
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' } // IPv4-based STUN
+  ]
 };
 
 let sessionConstraints = {
@@ -26,10 +26,10 @@ let sessionConstraints = {
 };
 
 export default AudioCall = () => {
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
+  const [localStream, setLocalStream] = useState(new MediaStream());
+  const [remoteStream, setRemoteStream] = useState(new MediaStream());
   const [gettingCall, setGettingCall] = useState(false);
-  const pc = useRef(new MediaStream());
+  const pc = useRef(new RTCPeerConnection(configuration));
   const connecting = useRef(false);
 
   useEffect(()=>{
@@ -66,7 +66,6 @@ export default AudioCall = () => {
     if (stream){
       setLocalStream(stream);
       stream.getTracks().forEach(track => {
-        // console.log('Adding local track:', track);
         pc.current.addTrack(track, stream);
       });
     }
@@ -77,14 +76,10 @@ export default AudioCall = () => {
 
     pc.current.ontrack = (event) => {
       const [remoteStream] = event.streams;
-      // if (remoteStream) {
-      // console.log('Remote stream received:', remoteStream);
       setRemoteStream(remoteStream); // Ensure you update the state with the remote stream
-      // }
     };
   };
   const create = async () => {
-    // console.log('Calling...');
     connecting.current = true;
 
     await setupWebRtc();
@@ -94,7 +89,7 @@ export default AudioCall = () => {
     collectIceCandidates(cRef, 'caller', 'callee');
 
     if (pc.current){
-      const offer = await pc.current.createOffer(sessionConstraints)
+      const offer = await pc.current.createOffer();
       pc.current.setLocalDescription(offer);
 
       const cWithOffer = {
@@ -104,13 +99,11 @@ export default AudioCall = () => {
         },
       }
 
-      // cRef.set(cWithOffer);
-      // await setDoc(cRef, cWithOffer);
       try {
         await setDoc(cRef, cWithOffer);
         console.log("Chat created successfully");
       } catch (error) {
-          console.error("Error creating chat: ", error);
+        console.error("Error creating chat: ", error);
       }
     }
 
@@ -125,48 +118,30 @@ export default AudioCall = () => {
       // Get the document reference and the offer data
       const cRef = doc(collection(db, 'meet'), 'chatId');
       const docSnapshot = await getDoc(cRef);
-      const offerData = docSnapshot.data()?.offer;
-  
-      // Ensure offer data exists
-      if (!offerData || !offerData.sdp || !offerData.type) {
-        console.error('Invalid offer data:', offerData);
-        return;
+      const offer = docSnapshot.data()?.offer;
+
+      if (offer){
+        await setupWebRtc();
+
+        collectIceCandidates(cRef, 'callee', 'caller');
+
+        if (pc.current) {
+          pc.current.setRemoteDescription(new RTCSessionDescription(offer));
+          const answer = await pc.current.createAnswer();
+          pc.current.setLocalDescription(answer);
+          const cWithAnswer = {
+            answer: {
+              type: answer.type,
+              sdp: answer.sdp,
+            },
+          };
+          updateDoc(cRef, cWithAnswer);
+        }
+      }
+      else{
+        console.log('Joining offer not found!');
       }
   
-      // console.log('Offer received:', offerData);
-  
-      await setupWebRtc(); // Initialize WebRTC
-  
-      // Collect ICE candidates for callee and caller
-      collectIceCandidates(cRef, 'callee', 'caller');
-  
-      if (pc.current) {
-        // Set the remote description with the received offer
-        const offer = new RTCSessionDescription({
-          type: offerData.type,
-          sdp: offerData.sdp,
-        });
-        await pc.current.setRemoteDescription(offer);
-  
-        // Create an answer for the call
-        const answer = await pc.current.createAnswer(sessionConstraints);
-        await pc.current.setLocalDescription(answer);
-  
-        // Log the created answer
-        // console.log('Answer created:', answer);
-  
-        // Prepare the answer data to update Firestore
-        const cWithAnswer = {
-          answer: {
-            type: answer.type,
-            sdp: answer.sdp,
-          },
-        };
-  
-        // Update Firestore with the answer
-        await updateDoc(cRef, cWithAnswer);
-        // console.log('Answer sent to Firestore');
-      }
     } catch (error) {
       console.error('Error during join call:', error);
     }
@@ -176,8 +151,6 @@ export default AudioCall = () => {
   const hangUp = async () => {
     setGettingCall(false);
     connecting.current = false;
-    // streamCleanUp();
-    // firestoreCleanUp();
     if (pc.current){
       pc.current.close();
     };
@@ -186,7 +159,6 @@ export default AudioCall = () => {
   const streamCleanUp = async () => {
     if (localStream){
       localStream.getTracks(track => track.stop());
-      // localStream.release();
     }
     setLocalStream(null);
     setRemoteStream(null);
@@ -212,37 +184,42 @@ export default AudioCall = () => {
   };
 
   const collectIceCandidates = async (cRef, localName, remoteName) => {
-    // Create references to the local and remote candidate collections
     const localCandidateCollection = collection(db, `meet/${cRef.id}/${localName}`);
     const remoteCandidateCollection = collection(db, `meet/${cRef.id}/${remoteName}`);
 
     if (pc.current) {
-        pc.current.onicecandidate = (event) => {
-          console.log('ICE candidate generated:', event.candidate);
-            if (event.candidate) {
-                // Add the ICE candidate to the local candidate collection
-                addDoc(localCandidateCollection, event.candidate.toJSON());
-            }
-        };
+      pc.current.onicecandidate = (event) => {
+        if (event.candidate) {
+          console.log('Local ICE candidate:', event.candidate);
+          addDoc(localCandidateCollection, event.candidate.toJSON())
+            .then(() => console.log('ICE candidate added to Firestore'))
+            .catch((error) => console.error('Error adding candidate:', error));
+        }
+        else{
+          console.log('candidate not found!');
+        }
+      };
     }
 
-    // Listen for changes in the remote candidates collection
-    onSnapshot(remoteCandidateCollection, (snapshot) => {
+    setTimeout(() => {
+      onSnapshot(remoteCandidateCollection, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added') {
-                const candidate = new RTCIceCandidate(change.doc.data());
-                pc.current?.addIceCandidate(candidate);
-            }
+          console.log('Candidate change received:', change);
+          if (change.type === 'added') {
+            const candidate = new RTCIceCandidate(change.doc.data());
+            pc.current?.addIceCandidate(candidate);
+          }
         });
-    });
+      });
+    }, 2000);
   };
 
 
   if (gettingCall){
     return <GettingCall join={join} hangUp={hangUp} />
   }
-
-  if (localStream){
+  console.log('localStream>>>', localStream);
+  if (localStream._tracks.length > 0){
     return(
       <>
         <Video

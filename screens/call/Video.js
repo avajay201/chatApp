@@ -16,7 +16,7 @@ const ButtonContainer = (props)=>{
 }
 
 export default Video = (props)=>{
-    // console.log('Video props>>>', props);
+    console.log('Video props>>>', props);
     // console.log('Remote Stream URL:', props.remoteStream?.toURL());
     // console.log('Local Stream URL:', props.localStream?.toURL());
     // console.log('Local Stream ID:', props.localStream?.id);
@@ -35,7 +35,7 @@ export default Video = (props)=>{
         )
     }
 
-    if (props.localStream && props.remoteStream.getTracks().length > 0){
+    if (props.localStream && props.remoteStream){
         console.log('Remote stream tracks:', props.remoteStream.getTracks());
         return(
             <>
@@ -54,7 +54,7 @@ export default Video = (props)=>{
         )
     }
     else {
-        console.error('No tracks in remote stream');
+        console.log('No tracks in remote stream');
     }
     return(
         <>
