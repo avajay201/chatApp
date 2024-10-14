@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,93 +6,90 @@ import {
   ScrollView,
   TouchableOpacity,
   ToastAndroid,
+  ActivityIndicator,
 } from "react-native";
+import MyLayout from './MyLayout';
+import { getSubcriptions, subscriptionPayment } from './../actions/APIActions';
 
 
 const SubscriptionPage = ({ navigation }) => {
-  const [subscriptions, setSubscriptions] = useState([
-    {
-      id: 1,
-      price: 999,
-      subscription_name: "Premium",
-      description: "Basic Plan",
-      payment_url: "https://pmny.in/hrAjlwHUt5Vq",
-    },
-    {
-      id: 2,
-      price: 99,
-      subscription_name: "Daily Plan",
-      description: "Onboarding Verification for Bank vs Profile name.",
-      payment_url: "https://pmny.in/CJU4OUg5ZveW",
-    },
-    {
-      id: 3,
-      price: 2999,
-      subscription_name: "Gold",
-      description:
-        "* Pay for 3 Months + Get an additional 3 Months\n* Unlimited chat",
-      payment_url: null,
-    },
-    {
-      id: 4,
-      price: 7999,
-      subscription_name: "Diamond",
-      description: "* 6 Months + 3 Months\n* Unlimited chat\n* Profile Boost",
-      payment_url: null,
-    },
-    {
-      id: 5,
-      price: 9999,
-      subscription_name: "Platinum",
-      description:
-        "* Pay for 12 Months and Get additional 6 Months free\n* Unlimited Chat\n* Profile Boost\n* Highlight profiles\n* Spotlight profiles on the top of the search\n* AI Assistant",
-      payment_url: null,
-    },
-    {
-      id: 6,
-      price: 49999,
-      subscription_name: "VIP Package",
-      description:
-        "* AI-driven astrology filter matches\n* Unlimited Chats and connections",
-      payment_url: null,
-    },
-  ]);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  const handlePayment = (paymentUrl) => {
-    if (paymentUrl) {
-        navigation.navigate('Payment', { paymentUrl: paymentUrl })
-    } else {
-      ToastAndroid.show('Failed to use this plan!', ToastAndroid.SHORT);
+  useEffect(()=>{
+    const allSubscriptions = async()=>{
+      const result = await getSubcriptions();
+      if (result && result[0] === 200){
+        setSubscriptions(result[1]);
+      }
+      setLoading(false);
+    }
+
+    allSubscriptions();
+  }, []);
+
+  const handlePayment = async(sub_id) => {
+    setIsProcessingPayment(true);
+    const data = {subscription_id: sub_id, user_id: 1};
+    const result = await subscriptionPayment(data);
+    console.log('sub_id>>>', sub_id, 'result>>>', result);
+    setIsProcessingPayment(false);
+    if (result && result[0] === 200){
+      navigation.navigate('Payment', { paymentUrl: result[1].redirect_url });
+    }
+    else{
+      ToastAndroid.show('Sorry! We cann\'t process this subscription at this time.', ToastAndroid.SHORT);
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Choose Your Subscription Plan</Text>
+    <MyLayout>
+      <ScrollView style={styles.container}>
+        <Text style={styles.title}>Choose Your Subscription Plan</Text>
 
-      {subscriptions.map((plan) => (
-        <View key={plan.id} style={styles.subscriptionCard}>
-          <Text style={styles.subscriptionName}>{plan.subscription_name}</Text>
-          <Text style={styles.subscriptionPrice}>₹{plan.price}</Text>
-          <Text style={styles.description}>
-            {plan.description.replace(/\n/g, " ").replace(/<br>/g, "\n")}
-          </Text>
+        {subscriptions.length > 0 ? subscriptions.map((plan) => (
+            <View key={plan.id} style={styles.subscriptionCard}>
+              <Text style={styles.subscriptionName}>{plan.subscription_name}</Text>
+              <Text style={styles.subscriptionPrice}>₹{plan.price}</Text>
+              <Text style={styles.description}>
+                {plan.description.replace(/\n/g, " ").replace(/<br>/g, "\n")}
+              </Text>
 
-          {plan.payment_url ? (
-            <TouchableOpacity
-              style={styles.payButton}
-              onPress={() => handlePayment(plan.payment_url)}
-            >
-              <Text style={styles.payButtonText}>Pay Now</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.notAvailable}>
-              <Text style={styles.notAvailableText}>Not Available</Text>
+              {plan.payment_url ? (
+                <TouchableOpacity
+                  style={styles.payButton}
+                  onPress={()=>handlePayment(plan.id)}
+                >
+                  <Text style={styles.payButtonText}>Pay Now</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.notAvailable}>
+                  <Text style={styles.notAvailableText}>Not Available</Text>
+                </View>
+              )}
             </View>
-          )}
+          ))
+          :
+          (!loading && 
+          <View style={styles.noSubs}>
+            <Text style={styles.noSubsTest}>User not found!</Text>
+          </View>)
+        }
+      </ScrollView>
+
+      {loading && (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#800925" />
         </View>
-      ))}
-    </ScrollView>
+      )}
+
+      {isProcessingPayment && (
+        <View style={styles.blockingOverlay}>
+          <ActivityIndicator size="large" color="white" />
+        </View>
+      )}
+    </MyLayout>
   );
 };
 
@@ -156,6 +153,37 @@ const styles = StyleSheet.create({
   notAvailableText: {
     fontSize: 16,
     color: "#999",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  noSubs: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  noSubsTest: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  blockingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
   },
 });
 

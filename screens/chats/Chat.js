@@ -837,7 +837,12 @@ const Chat = ({ navigation }) => {
             is_url={userProfile.blocked ? false : true}
           />
           {chatOn && !userProfile.other_blocked && (
-            <View style={userStatus ? styles.onlineDot : styles.offlineDot} />
+            <>
+              <View style={userStatus ? styles.onlineDot : styles.offlineDot} />
+              <View style={styles.lastSeen }>
+                <Text style={styles.lastSeenText}>{userStatus ? 'Online' : userProfile.last_seen}</Text>
+              </View>
+            </>
           )}
         </View>
 
@@ -973,17 +978,33 @@ const Chat = ({ navigation }) => {
               <Ionicons name="close" size={20} color="#fff" />
             </TouchableOpacity>
 
-            <Image
-              source={ userProfile.blocked ? require("../../assets/profile.png") : (userProfile.profile_picture ? {uri : BASE_URL + userProfile.profile_picture} : null) }
-              style={styles.profileImageLarge}
-            />
-            {/* userProfile.blocked
-                ? require("../../assets/profile.png")
-                : userProfile.profile_picture
-                ? BASE_URL + userProfile.profile_picture
-                : null */}
-            {/* <Image source={is_url ? { uri: src } : src} style={{ height: '100%', width: '100%' }} /> */}
+            <View style={styles.userProfileImage}>
+              <Image
+                source={ userProfile.blocked ? require("../../assets/profile.png") : (userProfile.profile_picture ? {uri : BASE_URL + userProfile.profile_picture} : null) }
+                style={styles.profileImageLarge}
+              />
+            </View>
             <Text style={styles.profileUsername}>{userName}</Text>
+            <View style={styles.profileDetail}>
+              <Text style={styles.profileDetailInfoLabel}>Last seen:</Text>
+              <Text style={styles.profileDetailInfoValue}>{userStatus ? 'Online' : userProfile.last_seen}</Text>
+            </View>
+            <View style={styles.profileDetail}>
+              <Text style={styles.profileDetailInfoLabel}>Name:</Text>
+              <Text style={styles.profileDetailInfoValue}>Ajay Verma</Text>
+            </View>
+            <View style={styles.profileDetail}>
+              <Text style={styles.profileDetailInfoLabel}>Gender:</Text>
+              <Text style={styles.profileDetailInfoValue}>Male</Text>
+            </View>
+            <View style={styles.profileDetail}>
+              <Text style={styles.profileDetailInfoLabel}>Marital Status:</Text>
+              <Text style={styles.profileDetailInfoValue}>Single</Text>
+            </View>
+            <View style={styles.profileDetail}>
+              <Text style={styles.profileDetailInfoLabel}>Community:</Text>
+              <Text style={styles.profileDetailInfoValue}>Verma</Text>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1307,12 +1328,22 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
+  lastSeen: {
+    width: 100,
+    position: "absolute",
+    top: 27,
+    left: 50,
+  },
+  lastSeenText: {
+    fontSize: 10,
+  },
   username: {
     flex: 1,
     fontSize: 18,
     fontWeight: "bold",
     color: "#000",
     marginLeft: 10,
+    marginTop: -7,
   },
   iconContainer: {
     flexDirection: "row",
@@ -1587,10 +1618,9 @@ const styles = StyleSheet.create({
   },
   profileModalContainer: {
     backgroundColor: "#fff",
-    width: "80%",
+    width: "100%",
     borderRadius: 10,
     padding: 20,
-    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -1600,6 +1630,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  userProfileImage: {
+    alignItems: 'center',
+  },
   profileImageLarge: {
     width: 100,
     height: 100,
@@ -1607,14 +1640,27 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   profileUsername: {
+    textAlign: 'center',
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
   },
   profileDetail: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
+    paddingLeft: 40,
+    paddingRight: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 5,
+  },
+  profileDetailInfoLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+  },
+  profileDetailInfoValue: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#333',
   },
   confirmModalBackground: {
     flex: 1,

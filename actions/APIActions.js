@@ -212,9 +212,33 @@ export const searchGifs = async(query)=>{
     }
 };
 
-export const scriptions = async()=>{
+export const getSubcriptions = async()=>{
     try{
         const response = await axios.get(ENDPOINTS.subscriptions);
+        return [200, response.data];
+    }
+    catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};
+
+export const userSuggestions = async(data)=>{
+    try{
+        const response = await axios.get(`${ENDPOINTS.userSuggestions}/?family_name=${data.family_name}&living_in=${data.living_in}&religion=${data.religion}`);
+        return [200, response.data];
+    }
+    catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};
+
+export const subscriptionPayment = async(data)=>{
+    try{
+        const response = await axios.get(`${ENDPOINTS.subscriptionPayment}/?subscription_id=${data.subscription_id}&user_id=${data.user_id}`);
         return [200, response.data];
     }
     catch(error){

@@ -40,11 +40,11 @@ export default Video = (props)=>{
         return(
             <>
                 <View style={styles.container}>
-                    <RTCView streamURL={props.localStream.toURL()}
+                    <RTCView streamURL={props.remoteStream.toURL()}
                     objectFit={"cover"}
                     style={styles.video}
                     />
-                    <RTCView streamURL={props.remoteStream.toURL()}
+                    <RTCView streamURL={props.localStream.toURL()}
                     objectFit={"cover"}
                     style={styles.videoLocal}
                     />
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: 100,
         height: 150,
-        top: 0,
+        top: 50,
         left: 20,
         elevation: 10,
     }

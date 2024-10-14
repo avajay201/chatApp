@@ -154,6 +154,8 @@ export default AudioCall = () => {
     if (pc.current){
       pc.current.close();
     };
+    streamCleanUp();
+    firestoreCleanUp();
   };
 
   const streamCleanUp = async () => {
@@ -167,19 +169,24 @@ export default AudioCall = () => {
   const firestoreCleanUp = async () => {
     const cRef = doc(collection(db, 'meet'), 'chatId');
     if (cRef){
-      const calleeCandidate = collection(cRef, 'callee');
-      const deleteCalleePromises = calleeCandidate.docs.map(async (candidate) => {
-          await candidate.ref.delete();
-      });
-      await Promise.all(deleteCalleePromises);
-
-      const callerCandidate = collection(cRef, 'caller');
-      const deleteCallerPromises = callerCandidate.docs.map(async (candidate) => {
-          await candidate.ref.delete();
-      });
-      await Promise.all(deleteCallerPromises);
-
-      await deleteDoc(cRef);
+      try{
+        const calleeCandidate = collection(cRef, 'callee');
+        const deleteCalleePromises = calleeCandidate?.docs?.map(async (candidate) => {
+            await candidate.ref.delete();
+        });
+        await Promise.all(deleteCalleePromises);
+  
+        const callerCandidate = collection(cRef, 'caller');
+        const deleteCallerPromises = callerCandidate?.docs?.map(async (candidate) => {
+            await candidate.ref.delete();
+        });
+        await Promise.all(deleteCallerPromises);
+  
+        await deleteDoc(cRef);
+      }
+      catch(error){
+        console.log('Getting error while firestore cleaning:', error);
+      }
     }
   };
 
@@ -219,7 +226,7 @@ export default AudioCall = () => {
     return <GettingCall join={join} hangUp={hangUp} />
   }
   console.log('localStream>>>', localStream);
-  if (localStream._tracks.length > 0){
+  if (localStream && localStream._tracks.length > 0){
     return(
       <>
         <Video
