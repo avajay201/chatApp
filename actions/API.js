@@ -25,4 +25,6 @@ export const ENDPOINTS = {
     subscriptions: METRI_URL + '/subscriptions/',
     userSuggestions: USER_SUGGESTION_URL + '/api/filter-users',
     subscriptionPayment: USER_SUGGESTION_URL + '/make-payment',
+    subscriptionPaymentCreate: USER_SUGGESTION_URL + '/payment/details/',
+    applyCoupon: USER_SUGGESTION_URL + '/coupon',
 };

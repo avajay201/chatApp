@@ -238,7 +238,31 @@ export const userSuggestions = async(data)=>{
 
 export const subscriptionPayment = async(data)=>{
     try{
-        const response = await axios.get(`${ENDPOINTS.subscriptionPayment}/?subscription_id=${data.subscription_id}&user_id=${data.user_id}`);
+        const response = await axios.get(`${ENDPOINTS.subscriptionPayment}/?subscription_id=${data.subscription_id}&user_id=${data.user_id}&price=${data.price}`);
+        return [200, response.data];
+    }
+    catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};
+
+export const subscriptionPaymentCreate = async(data)=>{
+    try{
+        const response = await axios.post(ENDPOINTS.subscriptionPaymentCreate, data);
+        return [200, response.data];
+    }
+    catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};
+
+export const applyCoupon = async(coupon)=>{
+    try{
+        const response = await axios.get(`${ENDPOINTS.applyCoupon}/${coupon}`);
         return [200, response.data];
     }
     catch(error){

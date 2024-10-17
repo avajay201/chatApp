@@ -9,13 +9,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import MyLayout from './MyLayout';
-import { getSubcriptions, subscriptionPayment } from './../actions/APIActions';
+import { getSubcriptions } from './../actions/APIActions';
 
 
 const SubscriptionPage = ({ navigation }) => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(()=>{
     const allSubscriptions = async()=>{
@@ -29,18 +28,8 @@ const SubscriptionPage = ({ navigation }) => {
     allSubscriptions();
   }, []);
 
-  const handlePayment = async(sub_id) => {
-    setIsProcessingPayment(true);
-    const data = {subscription_id: sub_id, user_id: 1};
-    const result = await subscriptionPayment(data);
-    console.log('sub_id>>>', sub_id, 'result>>>', result);
-    setIsProcessingPayment(false);
-    if (result && result[0] === 200){
-      navigation.navigate('Payment', { paymentUrl: result[1].redirect_url });
-    }
-    else{
-      ToastAndroid.show('Sorry! We cann\'t process this subscription at this time.', ToastAndroid.SHORT);
-    }
+  const handlePayment = async(sub_id, price) => {
+    navigation.navigate('Checkout', { price: price, id: sub_id});
   };
 
   return (
@@ -59,9 +48,9 @@ const SubscriptionPage = ({ navigation }) => {
               {plan.payment_url ? (
                 <TouchableOpacity
                   style={styles.payButton}
-                  onPress={()=>handlePayment(plan.id)}
+                  onPress={()=>handlePayment(plan.id, plan.price)}
                 >
-                  <Text style={styles.payButtonText}>Pay Now</Text>
+                  <Text style={styles.payButtonText}>Purchase</Text>
                 </TouchableOpacity>
               ) : (
                 <View style={styles.notAvailable}>
@@ -81,12 +70,6 @@ const SubscriptionPage = ({ navigation }) => {
       {loading && (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#800925" />
-        </View>
-      )}
-
-      {isProcessingPayment && (
-        <View style={styles.blockingOverlay}>
-          <ActivityIndicator size="large" color="white" />
         </View>
       )}
     </MyLayout>
@@ -173,17 +156,6 @@ const styles = StyleSheet.create({
   noSubsTest: {
     fontSize: 20,
     fontWeight: 'bold',
-  },
-  blockingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 999,
   },
 });
 

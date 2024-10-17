@@ -22,9 +22,9 @@ export default function Chats({ navigation }) {
   const fetchChats = async () => {
     setIsLoading(true);
     const response = await userChats();
-    if (response[0] === 200) {
+    if (response && response[0] === 200) {
       setChats(response[1]);
-    } else if (response[0] === 401) {
+    } else if (response && response[0] === 401) {
       ToastAndroid.show('Session expired, please login.', ToastAndroid.SHORT);
       await AsyncStorage.removeItem('auth_token');
       await AsyncStorage.removeItem('auth_user');

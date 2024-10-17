@@ -10,9 +10,10 @@ import Profile from './screens/Profile';
 import Calls from './screens/Calls';
 import Chat from './screens/chats/Chat';
 import Chats from './screens/chats/Chats';
-import AudioCall from './screens/call/AudioCall';
+import VideoCall from './screens/call/VideoCall';
 import Payment from './screens/Payment';
 import Subscriptions from './screens/Subscriptions';
+import Checkout from './screens/Checkout';
 import { MainProvider } from './others/MyContext';
 
 import * as Device from 'expo-device';
@@ -205,8 +206,8 @@ function App() {
               header: (props) => null,
           }} />
           <Stack.Screen
-            name='AudioCall'
-            component={AudioCall}
+            name='VideoCall'
+            component={VideoCall}
             options={{
               headerTitle: '',
               header: (props) => null,
@@ -221,6 +222,13 @@ function App() {
           <Stack.Screen
             name='Subscriptions'
             component={Subscriptions}
+            options={{
+              headerTitle: '',
+              header: (props) => null,
+          }} />
+          <Stack.Screen
+            name='Checkout'
+            component={Checkout}
             options={{
               headerTitle: '',
               header: (props) => null,

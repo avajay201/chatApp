@@ -728,13 +728,14 @@ const Chat = ({ navigation }) => {
 
   // Audio call start
   const handleAudioCall = () => {
-    navigation.navigate('AudioCall', { userName: userName });
+    ToastAndroid.show("Audio calling...", ToastAndroid.SHORT);
   };
   // Audio call end
 
   // Video call start
   const handleVideoCall = () => {
-    ToastAndroid.show("Video calling...", ToastAndroid.SHORT);
+    // ToastAndroid.show("Video calling...", ToastAndroid.SHORT);
+    navigation.navigate('VideoCall', { userName: userName, user: user, status: 'out' });
   };
   // Video call end
 
@@ -852,22 +853,22 @@ const Chat = ({ navigation }) => {
         >
           {userName}
         </Text>
-        {/* Call and menu option */}
+        {/* Call and Menu option */}
         <View style={styles.iconContainer}>
           <TouchableOpacity
-            disabled={messageSendingLoader}
+            disabled={messageSendingLoader || (chatOn && !userProfile.other_blocked ? false : true)}
             onPress={handleAudioCall}
             style={styles.callIcon}
           >
-            <MaterialIcons name="call" size={24} color="#800925" />
+            <MaterialIcons name="call" size={24} color={chatOn && !userProfile.other_blocked ? "#800925" : "gray"} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            disabled={messageSendingLoader}
+            disabled={messageSendingLoader || (chatOn && !userProfile.other_blocked ? false : true)}
             onPress={handleVideoCall}
             style={styles.callIcon}
           >
-            <MaterialIcons name="videocam" size={24} color="#800925" />
+            <MaterialIcons name="videocam" size={24} color={chatOn && !userProfile.other_blocked ? "#800925" : "gray"} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -987,7 +988,7 @@ const Chat = ({ navigation }) => {
             <Text style={styles.profileUsername}>{userName}</Text>
             <View style={styles.profileDetail}>
               <Text style={styles.profileDetailInfoLabel}>Last seen:</Text>
-              <Text style={styles.profileDetailInfoValue}>{userStatus ? 'Online' : userProfile.last_seen}</Text>
+              <Text style={styles.profileDetailInfoValue}>{chatOn && !userProfile.other_blocked ? (userStatus ? 'Online' : userProfile.last_seen) : '-'}</Text>
             </View>
             <View style={styles.profileDetail}>
               <Text style={styles.profileDetailInfoLabel}>Name:</Text>

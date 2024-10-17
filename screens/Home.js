@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, ToastAndroid, Image, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, ToastAndroid, Image, FlatList, Dimensions } from 'react-native';
 import { MainContext } from '../others/MyContext';
 import MyLayout from './MyLayout';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -8,179 +8,178 @@ import { METRI_MEDIA_URL, USER_SUGGESTION_URL } from '../actions/API';
 
 
 export default function Home({ navigation }) {
-  const { setIsLogged } = useContext(MainContext);
+  const { setIsLogged, callPicked, setCallPicked } = useContext(MainContext);
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(false);
   const [searchedUser, setSearchedUser] = useState(null);
-  const [suggestionsdata, setSuggestionsData] = useState(
-    [
-      {
-        id: 1,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user1',
-        custom_id: 'ID1001',
-        first_name: 'John',
-        last_name: 'Doe',
-        religion: 'Christianity',
-        living_in: 'New York',
-        gender: 'Male',
-        community: 'Community A',
-        marital_status: 'Single',
-      },
-      {
-        id: 2,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user2',
-        custom_id: 'ID1002',
-        first_name: 'Emma',
-        last_name: 'Smith',
-        religion: 'Islam',
-        living_in: 'London',
-        gender: 'Female',
-        community: 'Community B',
-        marital_status: 'Married',
-      },
-      {
-        id: 3,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user3',
-        custom_id: 'ID1003',
-        first_name: 'Raj',
-        last_name: 'Patel',
-        religion: 'Hinduism',
-        living_in: 'Mumbai',
-        gender: 'Male',
-        community: 'Community C',
-        marital_status: 'Single',
-      },
-      {
-        id: 4,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user4',
-        custom_id: 'ID1004',
-        first_name: 'Aya',
-        last_name: 'Suzuki',
-        religion: 'Buddhism',
-        living_in: 'Tokyo',
-        gender: 'Female',
-        community: 'Community A',
-        marital_status: 'Divorced',
-      },
-      {
-        id: 5,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user5',
-        custom_id: 'ID1005',
-        first_name: 'Liam',
-        last_name: 'Johnson',
-        religion: 'Judaism',
-        living_in: 'Berlin',
-        gender: 'Male',
-        community: 'Community B',
-        marital_status: 'Married',
-      },
-      {
-        id: 6,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user6',
-        custom_id: 'ID1006',
-        first_name: 'Olivia',
-        last_name: 'Brown',
-        religion: 'Christianity',
-        living_in: 'New York',
-        gender: 'Female',
-        community: 'Community C',
-        marital_status: 'Single',
-      },
-      {
-        id: 7,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user7',
-        custom_id: 'ID1007',
-        first_name: 'Noah',
-        last_name: 'Davis',
-        religion: 'Islam',
-        living_in: 'London',
-        gender: 'Male',
-        community: 'Community A',
-        marital_status: 'Married',
-      },
-      {
-        id: 8,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user8',
-        custom_id: 'ID1008',
-        first_name: 'Sophia',
-        last_name: 'Garcia',
-        religion: 'Hinduism',
-        living_in: 'Mumbai',
-        gender: 'Female',
-        community: 'Community B',
-        marital_status: 'Divorced',
-      },
-      {
-        id: 9,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user9',
-        custom_id: 'ID1009',
-        first_name: 'Mason',
-        last_name: 'Martinez',
-        religion: 'Buddhism',
-        living_in: 'Tokyo',
-        gender: 'Male',
-        community: 'Community C',
-        marital_status: 'Single',
-      },
-      {
-        id: 10,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user10',
-        custom_id: 'ID1010',
-        first_name: 'Isabella',
-        last_name: 'Wilson',
-        religion: 'Judaism',
-        living_in: 'Berlin',
-        gender: 'Female',
-        community: 'Community A',
-        marital_status: 'Married',
-      },
-      {
-        id: 11,
-        images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
-        username: 'user11',
-        custom_id: 'ID1011',
-        first_name: 'James',
-        last_name: 'Moore',
-        religion: 'Christianity',
-        living_in: 'New York',
-        gender: 'Male',
-        community: 'Community B',
-        marital_status: 'Single',
-      }
-    ]
-  );
+  const userData = [
+    {
+      id: 1,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'ajayvortex',
+      custom_id: 'ID1001',
+      first_name: 'John',
+      last_name: 'Doe',
+      religion: 'Christianity',
+      living_in: 'New York',
+      gender: 'Male',
+      community: 'Community A',
+      marital_status: 'Single',
+    },
+    {
+      id: 2,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'vermaverse',
+      custom_id: 'ID1002',
+      first_name: 'Emma',
+      last_name: 'Smith',
+      religion: 'Islam',
+      living_in: 'London',
+      gender: 'Female',
+      community: 'Community B',
+      marital_status: 'Married',
+    },
+    {
+      id: 3,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'zenajay',
+      custom_id: 'ID1003',
+      first_name: 'Raj',
+      last_name: 'Patel',
+      religion: 'Hinduism',
+      living_in: 'Mumbai',
+      gender: 'Male',
+      community: 'Community C',
+      marital_status: 'Single',
+    },
+    {
+      id: 4,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'cosmicverma',
+      custom_id: 'ID1004',
+      first_name: 'Aya',
+      last_name: 'Suzuki',
+      religion: 'Buddhism',
+      living_in: 'Tokyo',
+      gender: 'Female',
+      community: 'Community A',
+      marital_status: 'Divorced',
+    },
+    {
+      id: 5,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'ajaynova',
+      custom_id: 'ID1005',
+      first_name: 'Liam',
+      last_name: 'Johnson',
+      religion: 'Judaism',
+      living_in: 'Berlin',
+      gender: 'Male',
+      community: 'Community B',
+      marital_status: 'Married',
+    },
+    {
+      id: 6,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'vermaecho',
+      custom_id: 'ID1006',
+      first_name: 'Olivia',
+      last_name: 'Brown',
+      religion: 'Christianity',
+      living_in: 'New York',
+      gender: 'Female',
+      community: 'Community C',
+      marital_status: 'Single',
+    },
+    {
+      id: 7,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'mysticajay',
+      custom_id: 'ID1007',
+      first_name: 'Noah',
+      last_name: 'Davis',
+      religion: 'Islam',
+      living_in: 'London',
+      gender: 'Male',
+      community: 'Community A',
+      marital_status: 'Married',
+    },
+    {
+      id: 8,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'quantumverma',
+      custom_id: 'ID1008',
+      first_name: 'Sophia',
+      last_name: 'Garcia',
+      religion: 'Hinduism',
+      living_in: 'Mumbai',
+      gender: 'Female',
+      community: 'Community B',
+      marital_status: 'Divorced',
+    },
+    {
+      id: 9,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'ajayfusion',
+      custom_id: 'ID1009',
+      first_name: 'Mason',
+      last_name: 'Martinez',
+      religion: 'Buddhism',
+      living_in: 'Tokyo',
+      gender: 'Male',
+      community: 'Community C',
+      marital_status: 'Single',
+    },
+    {
+      id: 10,
+      images: ['https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=600'],
+      username: 'vermanexus',
+      custom_id: 'ID1010',
+      first_name: 'Isabella',
+      last_name: 'Wilson',
+      religion: 'Judaism',
+      living_in: 'Berlin',
+      gender: 'Female',
+      community: 'Community A',
+      marital_status: 'Married',
+    },
+  ]
+  const [suggestionsdata, setSuggestionsData] = useState(userData);
   const [noUser, setNoUser] = useState(false);
+
+  useEffect(()=>{
+    if (callPicked){
+      console.log('***************Call picked up***************');
+      navigation.navigate('VideoCall', { userName: 'avajay203', user: 'avajay202', status: 'in' });
+      setCallPicked(false);
+    }
+  }, [callPicked]);
 
   useEffect(() => {
     setIsLogged(true);
 
-  //   const suggestions = async()=>{
-  //     setLoading(true);
-  //     const data = {family_name: '', living_in: '', religion: ''};
-  //     const result = await userSuggestions(data);
-  //     if (result && result[0] === 200){
-  //       setSuggestionsData(result[1]);
-  //     }
-  //     setLoading(false);
-  //   }
+    const suggestions = async()=>{
+      setLoading(true);
+      const data = {family_name: '', living_in: '', religion: ''};
+      const result = await userSuggestions(data);
+      if (result && result[0] === 200){
+        setSuggestionsData(result[1]);
+      }
+      setLoading(false);
+    }
 
-  //   if (!userId){
-  //     setNoUser(false);
-  //     setSearchedUser(null);
-  //     suggestions();
-  //   }
-  }, []);
-  // }, [userId]);
+    if (!userId){
+      setNoUser(false);
+      setSearchedUser(null);
+      // suggestions();
+      // temporary
+      setLoading(true);
+      setTimeout(()=>{
+        setSuggestionsData(userData);
+        setLoading(false);
+      }, 1500);
+    }
+  }, [userId]);
 
   const handleUserSearch = async () => {
     if (!userId) {
@@ -205,47 +204,47 @@ export default function Home({ navigation }) {
   const ProfileCard = ({ profile }) => {
     return (
       <View style={styles.userSuggestionsContainer}>
-      <Image 
-        source={profile.images.length > 0 ? { uri: profile.images[0] } : require('../assets/profile.png')} 
-        style={styles.userProfilePicture} 
-      />
-      <Text style={styles.userSuggestionName}>{profile.username}</Text>
+        <Image 
+          source={profile.images.length > 0 ? { uri: profile.images[0] } : require('../assets/profile.png')} 
+          style={styles.userProfilePicture} 
+        />
+        <Text style={styles.userSuggestionName}>{profile.username}</Text>
 
-      <View style={styles.userSuggestionDeatils}>
-        <Text style={styles.userSuggestionInfoLabel}>ID:</Text>
-        <Text style={styles.userSuggestionInfoValue}>{profile.custom_id}</Text>
-      </View>
+        <View style={styles.userSuggestionDeatils}>
+          <Text style={styles.userSuggestionInfoLabel}>ID:</Text>
+          <Text style={styles.userSuggestionInfoValue}>{profile.custom_id}</Text>
+        </View>
 
-      <View style={styles.userSuggestionDeatils}>
-        <Text style={styles.userSuggestionInfoLabel}>Name:</Text>
-        <Text style={styles.userSuggestionInfoValue}>{profile.first_name} {profile.last_name}</Text>
-      </View>
+        <View style={styles.userSuggestionDeatils}>
+          <Text style={styles.userSuggestionInfoLabel}>Name:</Text>
+          <Text style={styles.userSuggestionInfoValue}>{profile.first_name} {profile.last_name}</Text>
+        </View>
 
-      <View style={styles.userSuggestionDeatils}>
-        <Text style={styles.userSuggestionInfoLabel}>Religion:</Text>
-        <Text style={styles.userSuggestionInfoValue}>{profile.religion}</Text>
-      </View>
+        <View style={styles.userSuggestionDeatils}>
+          <Text style={styles.userSuggestionInfoLabel}>Religion:</Text>
+          <Text style={styles.userSuggestionInfoValue}>{profile.religion}</Text>
+        </View>
 
-      <View style={styles.userSuggestionDeatils}>
-        <Text style={styles.userSuggestionInfoLabel}>Location:</Text>
-        <Text style={styles.userSuggestionInfoValue}>{profile.living_in}</Text>
-      </View>
+        <View style={styles.userSuggestionDeatils}>
+          <Text style={styles.userSuggestionInfoLabel}>Location:</Text>
+          <Text style={styles.userSuggestionInfoValue}>{profile.living_in}</Text>
+        </View>
 
-      <View style={styles.userSuggestionDeatils}>
-        <Text style={styles.userSuggestionInfoLabel}>Gender:</Text>
-        <Text style={styles.userSuggestionInfoValue}>{profile.gender}</Text>
-      </View>
+        <View style={styles.userSuggestionDeatils}>
+          <Text style={styles.userSuggestionInfoLabel}>Gender:</Text>
+          <Text style={styles.userSuggestionInfoValue}>{profile.gender}</Text>
+        </View>
 
-      <View style={styles.userSuggestionDeatils}>
-        <Text style={styles.userSuggestionInfoLabel}>Community:</Text>
-        <Text style={styles.userSuggestionInfoValue}>{profile.community}</Text>
-      </View>
+        <View style={styles.userSuggestionDeatils}>
+          <Text style={styles.userSuggestionInfoLabel}>Community:</Text>
+          <Text style={styles.userSuggestionInfoValue}>{profile.community}</Text>
+        </View>
 
-      <View style={styles.userSuggestionDeatils}>
-        <Text style={styles.userSuggestionInfoLabel}>Marital Status:</Text>
-        <Text style={styles.userSuggestionInfoValue}>{profile.marital_status}</Text>
+        <View style={styles.userSuggestionDeatils}>
+          <Text style={styles.userSuggestionInfoLabel}>Marital Status:</Text>
+          <Text style={styles.userSuggestionInfoValue}>{profile.marital_status}</Text>
+        </View>
       </View>
-    </View>
     );
   };
 
@@ -285,6 +284,10 @@ export default function Home({ navigation }) {
             data={suggestionsdata}
             renderItem={({ item }) => <ProfileCard profile={item} />}
             keyExtractor={(item) => item.id.toString()}
+            horizontal={true}
+            snapToInterval={Dimensions.get('window').width}
+            // showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 0 }}
           />
           :
           !searchedUser && null
@@ -368,6 +371,7 @@ export default function Home({ navigation }) {
   );
 }
 
+const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -433,19 +437,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
-    marginVertical: 10,
+    marginHorizontal: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 5,
+    width: width,
+    alignItems: 'center',
   },
   userProfilePicture: {
     width: 80,
     height: 80,
     borderRadius: 40,
     marginBottom: 15,
-    alignSelf: 'center',
+    // alignSelf: 'center',
   },
   userSuggestionName: {
     fontSize: 20,
@@ -458,6 +464,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: 5,
+    width: '100%',
+    paddingRight: 40,
   },
   userSuggestionInfoLabel: {
     fontSize: 14,

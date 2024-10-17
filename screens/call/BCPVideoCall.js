@@ -25,12 +25,13 @@ let sessionConstraints = {
 	}
 };
 
-export default AudioCall = () => {
+export default VideoCall = () => {
   const [localStream, setLocalStream] = useState(new MediaStream());
   const [remoteStream, setRemoteStream] = useState(new MediaStream());
   const [gettingCall, setGettingCall] = useState(false);
   const pc = useRef(new RTCPeerConnection(configuration));
   const connecting = useRef(false);
+  const [callStatus, setCallStatus] = useState('Calling...');
 
   useEffect(()=>{
     const cRef = doc(collection(db, 'meet'), 'chatId');

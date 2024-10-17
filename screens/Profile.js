@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useCallback } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { userProfile, updateUserProfile } from "../actions/APIActions";
 import { BASE_URL } from "../actions/API";
 import { MainContext } from "../others/MyContext";
+import { useFocusEffect } from '@react-navigation/native';
 
 
 export default function Profile({ navigation }) {
@@ -31,25 +32,28 @@ export default function Profile({ navigation }) {
   const { setIsLogged } = useContext(MainContext);
 
   // Get profile start
-  useEffect(()=>{
-    const fetchProfile = async()=>{
-      const response = await userProfile();
-      if (response[0] === 200){
-        setProfileData(response[1]);
-        setProfileEditData(response[1]);
-      }
-      else if(response[0] === 401){
-        ToastAndroid.show('Session expired, please login.', ToastAndroid.SHORT);
-        await AsyncStorage.removeItem('auth_token');
-        await AsyncStorage.removeItem('auth_user');
-        navigation.navigate('Login');
-      }
-      else{
-        ToastAndroid.show('Something went wrong.', ToastAndroid.SHORT);
-      }
-    };
-    fetchProfile();
-  }, []);
+  const fetchProfile = async()=>{
+    const response = await userProfile();
+    if (response[0] === 200){
+      setProfileData(response[1]);
+      setProfileEditData(response[1]);
+    }
+    else if(response[0] === 401){
+      ToastAndroid.show('Session expired, please login.', ToastAndroid.SHORT);
+      await AsyncStorage.removeItem('auth_token');
+      await AsyncStorage.removeItem('auth_user');
+      navigation.navigate('Login');
+    }
+    else{
+      ToastAndroid.show('Something went wrong.', ToastAndroid.SHORT);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
   // Get profile end
 
   const handleEditProfile = () => {

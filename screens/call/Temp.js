@@ -22,7 +22,7 @@ const configuration = {
   iceCandidatePoolSize: 10,
 };
 
-const AudioCall = ({ navigation }) => {
+const VideoCall = ({ navigation }) => {
   const route = useRoute();
   const { userName } = route.params;
   const [roomName, setRoomName] = useState(null);
@@ -303,4 +303,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AudioCall;
+export default VideoCall;
