@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "LetsFun",
+    "slug": "letsfun",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app requires access to the camera.",
+        "NSMicrophoneUsageDescription": "This app requires access to the microphone."
+      }
+    },
+    "android": {
+      "package": "com.fun.letsfun",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "googleServicesFile": "./google-services.json",
+      "permissions": ["CAMERA", "RECORD_AUDIO", "INTERNET", "ACCESS_NETWORK_STATE"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["@config-plugins/react-native-webrtc"],
+    "scheme": "myapp",
+    "extra": {
+      "eas": {
+        "projectId": "5f26a376-ed38-4b28-988e-2fad5805ad3e"
+      }
+    },
+    "owner": "avajay928",
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#000000"
+    }
+  }
+}
