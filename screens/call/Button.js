@@ -20,8 +20,8 @@ export default Button = (props)=>{
 
 const styles = StyleSheet.create({
     button: {
-        width: 60,
-        height: 60,
+        width: 55,
+        height: 55,
         padding: 10,
         elevation: 10,
         justifyContent: 'center',

@@ -1221,7 +1221,7 @@ const Chat = ({ navigation }) => {
               disabled={newMessage != "" || messageSendingLoader ? true : false}
             >
               <MaterialIcons
-                name="image"
+                name="attachment"
                 size={45}
                 color={
                   newMessage || messageSendingLoader ? "#d3d3d3" : "#800925"

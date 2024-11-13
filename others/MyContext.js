@@ -142,11 +142,6 @@ export const MainProvider = ({ children }) => {
     // console.log('Call declined');
   };
 
-  // return (
-  //   <MainContext.Provider value={{wsData, isLogged, setIsLogged, configuration, pc, connecting}}>
-  //     {children}
-  //   </MainContext.Provider>
-  // );
   return (
     <MainContext.Provider value={{ wsData, isLogged, setIsLogged, configuration, pc, connecting, callPicked, setCallPicked }}>
       {gettingCall ? (

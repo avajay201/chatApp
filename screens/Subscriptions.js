@@ -38,17 +38,17 @@ const SubscriptionPage = ({ navigation }) => {
         <Text style={styles.title}>Choose Your Subscription Plan</Text>
 
         {subscriptions.length > 0 ? subscriptions.map((plan) => (
-            <View key={plan.id} style={styles.subscriptionCard}>
-              <Text style={styles.subscriptionName}>{plan.subscription_name}</Text>
-              <Text style={styles.subscriptionPrice}>₹{plan.price}</Text>
+            <View key={plan?.id} style={styles.subscriptionCard}>
+              <Text style={styles.subscriptionName}>{plan?.subscription_name}</Text>
+              <Text style={styles.subscriptionPrice}>₹{plan?.price}</Text>
               <Text style={styles.description}>
-                {plan.description.replace(/\n/g, " ").replace(/<br>/g, "\n")}
+                {plan?.description?.replace(/\n/g, " ").replace(/<br>/g, "\n")}
               </Text>
 
-              {plan.payment_url ? (
+              {plan?.payment_url ? (
                 <TouchableOpacity
                   style={styles.payButton}
-                  onPress={()=>handlePayment(plan.id, plan.price)}
+                  onPress={()=>handlePayment(plan?.id, plan?.price)}
                 >
                   <Text style={styles.payButtonText}>Purchase</Text>
                 </TouchableOpacity>

@@ -25,9 +25,12 @@ export default class Utils {
                 deviceId: videoSourceId,
             },
         });
-        // console.log('stream from Class base>>>>>>>***************', stream);
-
         if (typeof stream !== "boolean") return stream;
         return null;
+    }
+    static stopStream(stream) {
+        if (stream) {
+            stream.getVideoTracks().forEach(track => track.stop());
+        }
     }
 }

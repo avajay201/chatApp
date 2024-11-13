@@ -1,29 +1,26 @@
 import React from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Button from "./Button";
 
-
-export default GettingCall = (props)=>{
-    return(
-        <>
-            <View style={styles.container}>
-                <View style={styles.bContainer}>
-                    <Button
+export default GettingCall = (props) => {
+    return (
+        <View style={styles.container}>
+            <View style={styles.bContainer}>
+                <Button
                     iconName="phone"
                     backgroundColor="green"
                     onPress={props.join}
-                    style={{marginRight: 30}}
-                    />
-                    <Button
+                    style={[styles.circleButton, { marginRight: 30 }]}
+                />
+                <Button
                     iconName="phone"
                     backgroundColor="red"
                     onPress={props.hangUp}
-                    style={{marginLeft: 30}}
-                    />
-                </View>
+                    style={[styles.circleButton, { marginLeft: 30 }]}
+                />
             </View>
-        </>
-    )
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
@@ -35,5 +32,12 @@ const styles = StyleSheet.create({
     bContainer: {
         flexDirection: 'row',
         bottom: 30,
+    },
+    circleButton: {
+        width: 60,              
+        height: 60,             
+        borderRadius: 30,        
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

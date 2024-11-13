@@ -16,12 +16,62 @@ export default VideoCall = ({ navigation }) => {
   const { userName, user, status } = route.params;
   const [localStream, setLocalStream] = useState(new MediaStream());
   const [remoteStream, setRemoteStream] = useState(new MediaStream());
-  const [callStatus, setCallStatus] = useState('Calling...');
+  const [callStatus, setCallStatus] = useState('Signal Connecting...');
   const [callTime, setCallTime] = useState(0);
   const timerRef = useRef(null);
   const cRef = useRef(null);
   const [isFront, setIsFront] = useState(true);
-  const [isSpeaker, setIsSpeaker] = useState(false);
+  const [isSpeaker, setIsSpeaker] = useState(true);
+  const [isVideo, setIsVideo] = useState(true);
+  const [isMic, setIsMic] = useState(true);
+
+  const toggleVideo = async ()=>{
+    try{
+      if (localStream) {
+        Utils.stopStream(localStream);
+        setLocalStream(null);
+        setIsVideo(false);
+      }
+      else{
+        // const newStream = await Utils.getStream(true);
+        // if (newStream) {
+        //   setLocalStream(newStream);
+        //   setIsVideo(true);
+        //   newStream.getTracks().forEach(track => {
+        //     pc.current.addTrack(track, newStream);
+        //   });
+        // }
+        if (localStream) {
+          localStream.getTracks().forEach(track => track.stop());
+        }
+        // Get new stream with the updated camera direction
+        const newStream = await Utils.getStream(isFront);
+        if (newStream) {
+          setLocalStream(newStream);
+          pc.current.getSenders().forEach(sender => {
+            if (sender.track.kind === 'video') {
+              sender.replaceTrack(newStream.getVideoTracks()[0]);
+            }
+          });
+        }
+      }
+    }
+    catch(error){
+      console.log('Getting error while toggling video:', error);
+    }
+  }
+
+  const toggleMic = ()=>{
+    try{
+      localStream.getAudioTracks().forEach(track => {
+        track.enabled = !isMic;
+      });
+      setIsMic(!isMic);
+    }
+    catch(error){
+      console.log('Getting error while toggling mic:', error);
+    }
+  }
 
   const toggleSpeaker = async () => {
     try {
@@ -262,7 +312,8 @@ export default VideoCall = ({ navigation }) => {
 
   const streamCleanUp = async () => {
     if (localStream) {
-      localStream.getTracks(track => track.stop());
+      localStream.getVideoTracks().forEach(track => track.stop());
+      localStream.getAudioTracks().forEach(track => track.stop());
     }
     clearInterval(timerRef.current);
     timerRef.current = null;
@@ -278,7 +329,7 @@ export default VideoCall = ({ navigation }) => {
 
   return (
     <>
-      {localStream && localStream?._tracks?.length > 0 ? (
+      {((localStream && localStream?._tracks?.length > 0) || !isVideo) && callStatus != 'end' ? (
         <Video
           hangUp={hangUp}
           localStream={localStream}
@@ -287,6 +338,11 @@ export default VideoCall = ({ navigation }) => {
           user={userName}
           switchCamera={switchCamera}
           toggleSpeaker={toggleSpeaker}
+          isSpeaker={isSpeaker}
+          isVideo={isVideo}
+          toggleVideo={toggleVideo}
+          isMic={isMic}
+          toggleMic={toggleMic}
         />
       ) : callStatus === 'end' ? (
         <View style={styles.container}>

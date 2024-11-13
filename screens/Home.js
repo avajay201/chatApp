@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, ToastAndroid, Image, FlatList, Dimensions } from 'react-native';
+import { View, Text,Modal, StyleSheet, TextInput, Button, Linking, TouchableOpacity, ActivityIndicator, ToastAndroid, Image, FlatList, Dimensions } from 'react-native';
 import { MainContext } from '../others/MyContext';
 import MyLayout from './MyLayout';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -172,7 +172,6 @@ export default function Home({ navigation }) {
   };
 
   useEffect(()=>{
-    console.log('wsData>>>>', wsData);
     if (!wsData){
       return;
     }
@@ -186,7 +185,6 @@ export default function Home({ navigation }) {
     const auth_user = await AsyncStorage.getItem("auth_user");
     setUser(auth_user);
     const result = await messageNotifications();
-    console.log('result>>>', result);
     if (result[0] === 200) {
       setNotificationsCount(result[1].length);
     } else if (result[0] === 401) {
@@ -228,42 +226,26 @@ export default function Home({ navigation }) {
     if (!userId){
       setNoUser(false);
       setSearchedUser(null);
-      // suggestions();
-      // temporary
       setLoading(true);
       setTimeout(()=>{
         setSuggestionsData(userData);
         setLoading(false);
       }, 1500);
     }
-  }, [userId]);
+  }, []);
 
-  const handleUserSearch = async () => {
-    if (!userId) {
-      return;
-    }
-    setSearchedUser(null);
-    setNoUser(false);
-    setLoading(true);
-    const result = await searchUser(1, userId);
-    if (result[0] === 200) {
-      setSearchedUser(result[1][0]);
-    } else if (result[0] === 404) {
-      setNoUser(true);
-    } else if (result[0] === 403) {
-      ToastAndroid.show(result[1], ToastAndroid.SHORT);
-    }else {
-      ToastAndroid.show('Something went wrong!', ToastAndroid.SHORT);
-    }
-    setLoading(false);
+  const openWebsite = () => {
+    const url = 'https://www.mrwedsmrs.com';
+    Linking.openURL(url).catch((err) => console.error("Couldn't load page", err));
   };
 
   const ProfileCard = ({ profile }) => {
     return (
-      <View style={styles.userSuggestionsContainer}>
+      <TouchableOpacity style={styles.userSuggestionsContainer} onPress={openWebsite} >
+        
         <Image 
           source={profile.images.length > 0 ? { uri: profile.images[0] } : require('../assets/profile.png')} 
-          style={styles.userProfilePicture} 
+          style={styles.userProfilePicture}
         />
         <Text style={styles.userSuggestionName}>{profile.username}</Text>
 
@@ -301,7 +283,7 @@ export default function Home({ navigation }) {
           <Text style={styles.userSuggestionInfoLabel}>Marital Status:</Text>
           <Text style={styles.userSuggestionInfoValue}>{profile.marital_status}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -351,7 +333,6 @@ export default function Home({ navigation }) {
             keyExtractor={(item) => item.id.toString()}
             horizontal={true}
             snapToInterval={Dimensions.get('window').width}
-            // showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 0 }}
           />
           :
@@ -441,6 +422,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    marginTop:0
   },
   header: {
     width: '100%',
@@ -451,6 +433,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#800925',
     position: 'relative',
+    top:0
   },
   activeUserContainer: {
     position: 'absolute',
@@ -512,6 +495,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+
   userSuggesionsContainer: {
     marginTop: 20,
     marginBottom: 20,
@@ -653,5 +637,53 @@ const styles = StyleSheet.create({
   },
   value: {
     color: '#333',
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  modalContainer: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 15,
+    alignItems: 'center',
+    elevation: 10, // Android shadow
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 3 }, // iOS shadow
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#333333',
+  },
+
+  modalText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#555555',
+    marginBottom: 20,
+  },
+  linkText: {
+    color: '#1e90ff',
+    textDecorationLine: 'underline',
+  },
+  closeButton: {
+    width: '100%',
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#800925',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
