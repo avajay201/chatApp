@@ -241,7 +241,7 @@ export default function Home({ navigation }) {
 
   const ProfileCard = ({ profile }) => {
     return (
-      <TouchableOpacity style={styles.userSuggestionsContainer} onPress={openWebsite} >
+      <TouchableOpacity style={styles.userSuggestionsContainer} >
         
         <Image 
           source={profile.images.length > 0 ? { uri: profile.images[0] } : require('../assets/profile.png')} 
@@ -282,6 +282,15 @@ export default function Home({ navigation }) {
         <View style={styles.userSuggestionDeatils}>
           <Text style={styles.userSuggestionInfoLabel}>Marital Status:</Text>
           <Text style={styles.userSuggestionInfoValue}>{profile.marital_status}</Text>
+        </View>
+
+        <View style={styles.profileCardOption}>
+          <View style={styles.profileCardOptionBtn}>
+            <Text style={styles.profileCardOptionBtnText} onPress={openWebsite}>Connect</Text>
+          </View>
+          <View style={styles.profileCardOptionBtn}>
+            <Text style={styles.profileCardOptionBtnText} onPress={openWebsite}>Chat</Text>
+            </View>
         </View>
       </TouchableOpacity>
     );
@@ -327,6 +336,7 @@ export default function Home({ navigation }) {
         {/* User suggestions */}
         {
           suggestionsdata.length > 0 &&  !loading && !searchedUser && !noUser ?
+          <View style={styles.profileCardCont}>
           <FlatList
             data={suggestionsdata}
             renderItem={({ item }) => <ProfileCard profile={item} />}
@@ -335,6 +345,7 @@ export default function Home({ navigation }) {
             snapToInterval={Dimensions.get('window').width}
             contentContainerStyle={{ paddingHorizontal: 0 }}
           />
+          </View>
           :
           !searchedUser && null
         }
@@ -422,7 +433,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    marginTop:0
+    marginTop:0,
   },
   header: {
     width: '100%',
@@ -495,7 +506,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-
+  profileCardOption: {
+    flexDirection: 'row',
+    gap: 20,
+    marginTop: 30,
+  },
+  profileCardOptionBtn: {
+    paddingVertical: 10,
+    backgroundColor: '#800925',
+    width: 100,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  profileCardOptionBtnText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
   userSuggesionsContainer: {
     marginTop: 20,
     marginBottom: 20,
@@ -513,16 +539,17 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   // user suggestions start
+  profileCardCont: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   userSuggestionsContainer: {
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
+    marginTop: 50,
     marginHorizontal: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
     width: width,
     alignItems: 'center',
   },
@@ -531,7 +558,6 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     marginBottom: 15,
-    // alignSelf: 'center',
   },
   userSuggestionName: {
     fontSize: 20,
