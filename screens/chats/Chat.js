@@ -733,9 +733,9 @@ const Chat = ({ navigation }) => {
   // Audio call end
 
   // Video call start
-  const handleVideoCall = () => {
+  const handleVideoCall = (id) => {
     // ToastAndroid.show("Video calling...", ToastAndroid.SHORT);
-    navigation.navigate('VideoCall', { userName: userName, user: user, status: 'out' });
+    navigation.navigate('VideoCall', { userName: userName, user: user, status: 'out', user_id: id });
   };
   // Video call end
 
@@ -865,7 +865,7 @@ const Chat = ({ navigation }) => {
 
           <TouchableOpacity
             disabled={messageSendingLoader || (chatOn && !userProfile.other_blocked ? false : true)}
-            onPress={handleVideoCall}
+            onPress={()=>handleVideoCall(userProfile.user_id)}
             style={styles.callIcon}
           >
             <MaterialIcons name="videocam" size={24} color={chatOn && !userProfile.other_blocked ? "#800925" : "gray"} />

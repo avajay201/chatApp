@@ -29,6 +29,9 @@ const ButtonContainer = (props) => {
 };
 
 export default Video = (props) => {
+    if (props.localStream && props.remoteStream){
+        props.startTimer();
+    }
     return (
         <View style={styles.container}>
             {props.localStream && props.remoteStream?._tracks?.length === 0 ?

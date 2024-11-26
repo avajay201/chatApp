@@ -8,12 +8,13 @@ import { setDoc, doc, addDoc, collection, onSnapshot, updateDoc, getDoc, deleteD
 import db from '../../others/FBSetup';
 import { MainContext } from "../../others/MyContext";
 import { Audio } from 'expo-av';
+import { createCall } from "../../actions/APIActions";
 
 
 export default VideoCall = ({ navigation }) => {
   const { configuration, pc, connecting } = useContext(MainContext);
   const route = useRoute();
-  const { userName, user, status } = route.params;
+  const { userName, user, status, user_id } = route.params;
   const [localStream, setLocalStream] = useState(new MediaStream());
   const [remoteStream, setRemoteStream] = useState(new MediaStream());
   const [callStatus, setCallStatus] = useState('Signal Connecting...');
@@ -24,6 +25,15 @@ export default VideoCall = ({ navigation }) => {
   const [isSpeaker, setIsSpeaker] = useState(true);
   const [isVideo, setIsVideo] = useState(true);
   const [isMic, setIsMic] = useState(true);
+
+  const makeCall = async()=>{
+    const data = {
+      call_type: "Video",
+      call_duration: callTime,
+      receiver: user_id
+    }
+    createCall(data);
+  }
 
   const toggleVideo = async ()=>{
     try{
@@ -214,8 +224,6 @@ export default VideoCall = ({ navigation }) => {
         };
 
         await sendOffer();
-
-        startTimer();
       }
       else{
         ToastAndroid.show('Unable to access camera!', ToastAndroid.SHORT);
@@ -296,6 +304,7 @@ export default VideoCall = ({ navigation }) => {
     await deleteFirebaseData();
     connecting.current = false;
     setCallStatus('end');
+    makeCall();
     // console.log('Hung up call...');
   };
 
@@ -343,6 +352,7 @@ export default VideoCall = ({ navigation }) => {
           toggleVideo={toggleVideo}
           isMic={isMic}
           toggleMic={toggleMic}
+          startTimer={startTimer}
         />
       ) : callStatus === 'end' ? (
         <View style={styles.container}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, ToastAndroid } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, ToastAndroid, ActivityIndicator } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { Avatar } from './comps/chats/Avatar';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -7,46 +7,15 @@ import MyLayout from './MyLayout';
 import Icon from "react-native-vector-icons/Ionicons";
 import { getCalls } from '../actions/APIActions';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BASE_URL } from '../actions/API';
 
 
-export default function Calls({navigation}) {
+export default function Calls({ navigation }) {
   const [searchKey, setSearchKey] = useState('');
   const [user, setUser] = useState(null);
-  const [calls, setCalls] = useState([
-    { 
-      id: '1', 
-      username: 'alicejohnson', 
-      callTime: '10:30 AM', 
-      avatar: '', 
-      callType: 'voice',
-      callDirection: 'outgoing',
-    },
-    { 
-      id: '2', 
-      username: 'bobSmith', 
-      callTime: 'Yesterday', 
-      avatar: '', 
-      callType: 'video', 
-      callDirection: 'incoming',
-    },
-    { 
-      id: '3', 
-      username: 'charliebrown', 
-      callTime: 'Monday', 
-      avatar: '', 
-      callType: 'voice', 
-      callDirection: 'outgoing',
-    },
-    { 
-      id: '4', 
-      username: 'dianaprince', 
-      callTime: 'Tuesday', 
-      avatar: '', 
-      callType: 'video', 
-      callDirection: 'incoming',
-    },
-  ]);
-  const [filteredCalls, setFilteredCalls] = useState(calls);
+  const [calls, setCalls] = useState([]);
+  const [filteredCalls, setFilteredCalls] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const fetchAuth = async () => {
     const auth_user = await AsyncStorage.getItem("auth_user");
@@ -60,34 +29,36 @@ export default function Calls({navigation}) {
     setUser(auth_user);
   };
 
-  const myCalls = async()=>{
+  const myCalls = async () => {
+    setLoading(true);
     const result = await getCalls();
-    if (result[0] === 200){
+    if (result[0] === 200) {
       setCalls(result[1]);
-    }
-    else if (response[0] === 401) {
+      setFilteredCalls(result[1]);
+    } else if (result[0] === 401) {
       ToastAndroid.show("Session expired, please login.", ToastAndroid.SHORT);
       await AsyncStorage.removeItem("auth_token");
       await AsyncStorage.removeItem("auth_user");
       navigation.navigate("Login");
     }
+    setLoading(false);
   };
 
-  useEffect(()=>{
-    if(user){
+  useEffect(() => {
+    if (user) {
       myCalls();
-    };
+    }
   }, [user]);
 
-  useEffect(()=>{
-    fetchAuth()
+  useEffect(() => {
+    fetchAuth();
   }, []);
 
   const handleChat = (name) => {
-    // navigation.navigate('Chat', { userName: name });
     ToastAndroid.show(`Start chat with ${name}`, ToastAndroid.SHORT);
+    navigation.navigate('Chat', { userName: name });
   };
-  
+
   const handleCall = (name, callType) => {
     const callAction = callType === 'video' ? 'video call' : 'voice call';
     ToastAndroid.show(`Start ${callAction} with ${name}`, ToastAndroid.SHORT);
@@ -100,20 +71,17 @@ export default function Calls({navigation}) {
       delay={index * 100}
     >
       <TouchableOpacity style={styles.callItem}>
-        <Avatar src={item.profile_picture} name={item.caller} is_url={false} />
+        <Avatar src={item.profile_picture ? BASE_URL + item.profile_picture : null} name={item.caller} is_url={item.profile_picture ? true : false} />
         <View style={styles.callDetails}>
-          <Text style={styles.callName}>{item.caller}</Text>
-          
+          <Text style={styles.callName}>{item.caller === user ? item.receiver : item.caller}</Text>
           <Text style={styles.callTime}>
             {item.caller === user ? 'You called' : 'Incoming call'} at {item.call_time}
           </Text>
         </View>
-
         <View style={styles.callActions}>
           <TouchableOpacity onPress={() => handleChat(item.caller)}>
             <MaterialIcons name="chat" size={24} color="#009387" style={styles.actionIcon} />
           </TouchableOpacity>
-
           <TouchableOpacity onPress={() => handleCall(item.caller, item.call_type)}>
             {item.call_type === 'Video' ? (
               <Ionicons name="videocam" size={24} color="#009387" style={styles.actionIcon} />
@@ -126,12 +94,12 @@ export default function Calls({navigation}) {
     </Animatable.View>
   );
 
-  const filterChats = ()=>{
+  const filterChats = () => {
     const fCalls = calls.filter(call => call.caller.toLowerCase().includes(searchKey.toLowerCase()));
     setFilteredCalls(fCalls);
-  }
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     filterChats();
   }, [searchKey]);
 
@@ -140,8 +108,8 @@ export default function Calls({navigation}) {
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.headerRow}>
-          <Icon onPress={()=> navigation.navigate('Chats')} name="chatbox-outline" size={40} color="#800925" />
-          <Icon name="call" size={40} color="#800925" />
+            <Icon onPress={() => navigation.navigate('Chats')} name="chatbox-outline" size={40} color="#800925" />
+            <Icon name="call" size={40} color="#800925" />
           </View>
           <View style={styles.inputContainer}>
             <TextInput
@@ -153,12 +121,20 @@ export default function Calls({navigation}) {
             <Icon name="search" size={20} color="#800925" />
           </View>
         </View>
-        <FlatList
-          data={filteredCalls}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-        />
+        {loading ? (
+          <ActivityIndicator size="large" color="#800925" style={styles.loader} />
+        ) : filteredCalls.length === 0 ? (
+          <View style={styles.noCallsContainer}>
+            <Text style={styles.noCallsText}>No Calls</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredCalls}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
     </MyLayout>
   );
@@ -178,11 +154,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
   },
   inputContainer: {
     flexDirection: "row",
@@ -230,5 +201,19 @@ const styles = StyleSheet.create({
   },
   actionIcon: {
     marginHorizontal: 10,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noCallsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noCallsText: {
+    fontSize: 18,
+    color: '#999',
   },
 });
