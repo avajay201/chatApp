@@ -311,3 +311,37 @@ export const messageNotifications = async()=>{
         };
     }
 };
+
+export const createCall = async(data)=>{
+    try{
+        const authToken = await getToken();
+        const response = await axios.post(ENDPOINTS.calls, data, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+            }
+        });
+        return [200, response.data];
+    }
+    catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};
+
+export const getCalls = async()=>{
+    try{
+        const authToken = await getToken();
+        const response = await axios.get(ENDPOINTS.calls, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+            }
+        });
+        return [200, response.data];
+    }
+    catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};

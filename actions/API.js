@@ -30,4 +30,5 @@ export const ENDPOINTS = {
     addOns: USER_SUGGESTION_URL + '/addons/',
     userProfile: METRI_MEDIA_URL + '/profiles/1/',
     notifications: BASE_URL + '/chat/notifications/',
+    calls: BASE_URL + '/calls/list-calls/',
 };

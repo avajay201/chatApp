@@ -5,11 +5,14 @@ import { Avatar } from './comps/chats/Avatar';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import MyLayout from './MyLayout';
 import Icon from "react-native-vector-icons/Ionicons";
+import { getCalls } from '../actions/APIActions';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function Calls({navigation}) {
   const [searchKey, setSearchKey] = useState('');
-  const calls = [
+  const [user, setUser] = useState(null);
+  const [calls, setCalls] = useState([
     { 
       id: '1', 
       username: 'alicejohnson', 
@@ -42,8 +45,43 @@ export default function Calls({navigation}) {
       callType: 'video', 
       callDirection: 'incoming',
     },
-  ];
+  ]);
   const [filteredCalls, setFilteredCalls] = useState(calls);
+
+  const fetchAuth = async () => {
+    const auth_user = await AsyncStorage.getItem("auth_user");
+    if (!auth_user) {
+      ToastAndroid.show("Session expired, please login.", ToastAndroid.SHORT);
+      await AsyncStorage.removeItem("auth_token");
+      await AsyncStorage.removeItem("auth_user");
+      navigation.navigate("Login");
+      return;
+    }
+    setUser(auth_user);
+  };
+
+  const myCalls = async()=>{
+    const result = await getCalls();
+    if (result[0] === 200){
+      setCalls(result[1]);
+    }
+    else if (response[0] === 401) {
+      ToastAndroid.show("Session expired, please login.", ToastAndroid.SHORT);
+      await AsyncStorage.removeItem("auth_token");
+      await AsyncStorage.removeItem("auth_user");
+      navigation.navigate("Login");
+    }
+  };
+
+  useEffect(()=>{
+    if(user){
+      myCalls();
+    };
+  }, [user]);
+
+  useEffect(()=>{
+    fetchAuth()
+  }, []);
 
   const handleChat = (name) => {
     // navigation.navigate('Chat', { userName: name });
@@ -62,22 +100,22 @@ export default function Calls({navigation}) {
       delay={index * 100}
     >
       <TouchableOpacity style={styles.callItem}>
-        <Avatar src={item.avatar} name={item.username} is_url={false} />
+        <Avatar src={item.profile_picture} name={item.caller} is_url={false} />
         <View style={styles.callDetails}>
-          <Text style={styles.callName}>{item.username}</Text>
+          <Text style={styles.callName}>{item.caller}</Text>
           
           <Text style={styles.callTime}>
-            {item.callDirection === 'outgoing' ? 'You called' : 'Incoming call'} at {item.callTime}
+            {item.caller === user ? 'You called' : 'Incoming call'} at {item.call_time}
           </Text>
         </View>
 
         <View style={styles.callActions}>
-          <TouchableOpacity onPress={() => handleChat(item.username)}>
+          <TouchableOpacity onPress={() => handleChat(item.caller)}>
             <MaterialIcons name="chat" size={24} color="#009387" style={styles.actionIcon} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => handleCall(item.username, item.callType)}>
-            {item.callType === 'video' ? (
+          <TouchableOpacity onPress={() => handleCall(item.caller, item.call_type)}>
+            {item.call_type === 'Video' ? (
               <Ionicons name="videocam" size={24} color="#009387" style={styles.actionIcon} />
             ) : (
               <Ionicons name="call" size={24} color="#009387" style={styles.actionIcon} />
@@ -89,7 +127,7 @@ export default function Calls({navigation}) {
   );
 
   const filterChats = ()=>{
-    const fCalls = calls.filter(call => call.username.toLowerCase().includes(searchKey.toLowerCase()));
+    const fCalls = calls.filter(call => call.caller.toLowerCase().includes(searchKey.toLowerCase()));
     setFilteredCalls(fCalls);
   }
 
