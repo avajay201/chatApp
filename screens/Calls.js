@@ -55,13 +55,13 @@ export default function Calls({ navigation }) {
   }, []);
 
   const handleChat = (name) => {
-    ToastAndroid.show(`Start chat with ${name}`, ToastAndroid.SHORT);
     navigation.navigate('Chat', { userName: name });
   };
 
-  const handleCall = (name, callType) => {
-    const callAction = callType === 'video' ? 'video call' : 'voice call';
-    ToastAndroid.show(`Start ${callAction} with ${name}`, ToastAndroid.SHORT);
+  const handleCall = (name, callType, userId) => {
+    // const callAction = callType === 'video' ? 'video call' : 'voice call';
+    navigation.navigate('VideoCall', { userName: name, user: user, status: 'out', user_id: userId });
+    // ToastAndroid.show(`Start ${callAction} with ${name}`, ToastAndroid.SHORT);
   };
 
   const renderItem = ({ item, index }) => (
@@ -79,10 +79,10 @@ export default function Calls({ navigation }) {
           </Text>
         </View>
         <View style={styles.callActions}>
-          <TouchableOpacity onPress={() => handleChat(item.caller)}>
+          <TouchableOpacity onPress={() => handleChat(item.caller === user ? item.receiver : item.caller)}>
             <MaterialIcons name="chat" size={24} color="#009387" style={styles.actionIcon} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleCall(item.caller, item.call_type)}>
+          <TouchableOpacity onPress={() => handleCall(item.caller === user ? item.receiver : item.caller, item.call_type, item.caller === user ? item.receiver_id : item.caller_id)}>
             {item.call_type === 'Video' ? (
               <Ionicons name="videocam" size={24} color="#009387" style={styles.actionIcon} />
             ) : (

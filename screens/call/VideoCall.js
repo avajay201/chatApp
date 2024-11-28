@@ -9,6 +9,7 @@ import db from '../../others/FBSetup';
 import { MainContext } from "../../others/MyContext";
 import { Audio } from 'expo-av';
 import { createCall } from "../../actions/APIActions";
+import { CALL_SOCKET_URL } from "../../actions/API";
 
 
 export default VideoCall = ({ navigation }) => {
@@ -25,6 +26,39 @@ export default VideoCall = ({ navigation }) => {
   const [isSpeaker, setIsSpeaker] = useState(true);
   const [isVideo, setIsVideo] = useState(true);
   const [isMic, setIsMic] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+  const callWS = useRef(null);
+
+  useEffect(()=>{
+    if (callWS.current){
+      return;
+    }
+
+    const room_name = [user, userName].sort().join('_');
+
+    callWS.current = new WebSocket(`${CALL_SOCKET_URL}/${room_name}/`);
+
+    callWS.current.onopen = () => {
+      console.log("Call WebSocket connected");
+    };
+
+    callWS.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Message received from call server:", data);
+      const members = data["member_count"];
+      if (members === 1){
+        hangUp();
+      }
+    };
+
+    callWS.current.onclose = () => {
+      console.log("Call WebSocket disconnected");
+    };
+
+    return () => {
+      callWS.current.close();
+    };
+  }, []);
 
   const makeCall = async()=>{
     const data = {
@@ -43,14 +77,6 @@ export default VideoCall = ({ navigation }) => {
         setIsVideo(false);
       }
       else{
-        // const newStream = await Utils.getStream(true);
-        // if (newStream) {
-        //   setLocalStream(newStream);
-        //   setIsVideo(true);
-        //   newStream.getTracks().forEach(track => {
-        //     pc.current.addTrack(track, newStream);
-        //   });
-        // }
         if (localStream) {
           localStream.getTracks().forEach(track => track.stop());
         }
@@ -129,34 +155,25 @@ export default VideoCall = ({ navigation }) => {
   
       // Get the document reference and the offer data
       cRef.current = doc(collection(db, 'meet'), 'chatId');
-      // console.log('1111111111111');
       const docSnapshot = await getDoc(cRef.current);
-      // console.log('22222222222222');
       const offer = docSnapshot.data()?.offer;
-      // console.log('3333333333333');
 
       if (offer){
-        // console.log('444444444444');
         pc.current = new RTCPeerConnection(configuration);
-        // console.log('444444444445');
         const stream = await Utils.getStream()
-        // console.log('444444444446');
         if (stream){
           setLocalStream(stream);
           stream.getTracks().forEach(track => {
             pc.current.addTrack(track, stream);
           });
         }
-        // console.log('444444444447');
         
         pc.current.ontrack = (event) => {
           const [remoteStream] = event.streams;
           setRemoteStream(remoteStream);
         };
-        // console.log('444444444448');
         
         collectIceCandidates(cRef.current, user, userName);
-        // console.log('444444444449');
 
         if (pc.current) {
           pc.current.setRemoteDescription(new RTCSessionDescription(offer));
@@ -171,12 +188,9 @@ export default VideoCall = ({ navigation }) => {
             receiver: userName,
             timestamp: new Date().toISOString(),
           };
-          // console.log('4444444444410');
           await updateDoc(cRef.current, cWithAnswer);
-          // console.log('4444444444411');
           connecting.current = true;
         }
-        // console.log('4444444444412');
       }
       else{
         console.log('Joining offer not found!');
@@ -188,7 +202,6 @@ export default VideoCall = ({ navigation }) => {
   };
 
   useEffect(()=> {
-    console.log('userName*****', userName, 'user*****', user);
     if (!userName || !user) {
       ToastAndroid.show('Something went wrong!', ToastAndroid.SHORT);
       navigation.goBack();
@@ -296,15 +309,23 @@ export default VideoCall = ({ navigation }) => {
     timerRef.current = setInterval(() => {
       setCallTime((prevTime) => prevTime + 1);
     }, 1000);
+    setIsConnected(true);
   };
 
   const hangUp = async () => {
     // console.log('Hangning up call...');
+    if (callWS.current){
+      callWS.current.close();
+    }
+    clearInterval(timerRef.current);
+    timerRef.current = null;
     await streamCleanUp();
     await deleteFirebaseData();
     connecting.current = false;
     setCallStatus('end');
-    makeCall();
+    if (status === 'out'){
+      makeCall();
+    }
     // console.log('Hung up call...');
   };
 
@@ -324,8 +345,6 @@ export default VideoCall = ({ navigation }) => {
       localStream.getVideoTracks().forEach(track => track.stop());
       localStream.getAudioTracks().forEach(track => track.stop());
     }
-    clearInterval(timerRef.current);
-    timerRef.current = null;
     setLocalStream(null);
     setRemoteStream(null);
   };
@@ -352,7 +371,10 @@ export default VideoCall = ({ navigation }) => {
           toggleVideo={toggleVideo}
           isMic={isMic}
           toggleMic={toggleMic}
+          callTimer={timerRef.current}
           startTimer={startTimer}
+          setIsConnected={setIsConnected}
+          isConnected={isConnected}
         />
       ) : callStatus === 'end' ? (
         <View style={styles.container}>
