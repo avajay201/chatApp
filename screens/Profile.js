@@ -65,7 +65,7 @@ export default function Profile({ navigation }) {
     setLoading(true);
 
     const formData = new FormData();
-    if (profileEditData.profile_picture && !profileEditData.profile_picture.startsWith('/media')) {
+    if (profileEditData.profile_picture && !profileEditData.profile_picture.includes('media')) {
       const uriParts = profileEditData.profile_picture.split('.');
       const fileType = uriParts[uriParts.length - 1];
       
@@ -99,6 +99,7 @@ export default function Profile({ navigation }) {
     console.log('formData>>>', formData);
 
     const response = await updateUserProfile(formData);
+    console.log('response>>>', response);
     if (response[0] === 200){
       setProfileData(response[1]);
       setProfileEditData(response[1]);
@@ -208,8 +209,10 @@ export default function Profile({ navigation }) {
                   duration={1500}
                   source={
                     profileData.profile_picture
-                      ? { uri: profileData.profile_picture.startsWith('http') ? profileData.profile_picture : BASE_URL + profileData.profile_picture }
-                      : require('../assets/profile.png')
+                    ? profileData.profile_picture.startsWith('/media')
+                      ? { uri: BASE_URL + profileData.profile_picture }
+                      : { uri: profileData.profile_picture }
+                    : require('../assets/profile.png')
                   }
                   style={styles.profileImage}
                 />
@@ -231,8 +234,8 @@ export default function Profile({ navigation }) {
                     <Text style={styles.editButtonText}>Logout</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.membership}>Membership: Free</Text>
-                <Text style={styles.membership}>Become a paid member now</Text>
+                <Text style={styles.membership}>Membership: {profileData.subscription ? profileData.subscription : 'Free'}</Text>
+                {!profileData.subscription && <Text style={styles.membership}>Become a paid member now</Text>}
                 <TouchableOpacity
                     style={styles.editButton}
                     onPress={()=>navigation.navigate('Subscriptions')}
@@ -243,7 +246,6 @@ export default function Profile({ navigation }) {
 
               <Animatable.View animation="fadeInUp" duration={1500}>
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="mail-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Email</Text>
                     <Text style={styles.infoText}>{profileData.email}</Text>
@@ -251,7 +253,6 @@ export default function Profile({ navigation }) {
                 </View>
                 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="mail-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Mobile Number</Text>
                     <Text style={styles.infoText}>{profileData.mobile_number}</Text>
@@ -259,7 +260,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="time-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>DOB</Text>
                     <Text style={styles.infoText}>{profileData.dob ? formatDate(profileData.dob) : null}</Text>
@@ -267,7 +267,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="male-female" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Gender</Text>
                     <Text style={styles.infoText}>{profileData.gender}</Text>
@@ -275,7 +274,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="location-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Location</Text>
                     <Text style={styles.infoText}>{profileData.location}</Text>
@@ -283,7 +281,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="megaphone-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Headline</Text>
                     <Text style={styles.infoText}>{profileData.headline}</Text>
@@ -291,7 +288,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="person-circle-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>About me</Text>
                     <Text style={styles.infoText}>{profileData.about_me}</Text>
@@ -299,7 +295,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="layers-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Caste</Text>
                     <Text style={styles.infoText}>{profileData.caste}</Text>
@@ -321,7 +316,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="barbell-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Weight</Text>
                     <Text style={styles.infoText}>{profileData.weight ? profileData.weight + 'KG' : ''}</Text>
@@ -337,7 +331,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="briefcase-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Occupation</Text>
                     <Text style={styles.infoText}>{profileData.occupation}</Text>
@@ -345,7 +338,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="cash-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Income</Text>
                     <Text style={styles.infoText}>{profileData.income ? 'Rs.' + profileData.income : '' }</Text>
@@ -353,7 +345,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="home-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Family Status</Text>
                     <Text style={styles.infoText}>{profileData.family_status}</Text>
@@ -361,7 +352,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="wine-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Alcoholic</Text>
                     <Text style={styles.infoText}>{profileData.alcoholic}</Text>
@@ -376,7 +366,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="musical-notes-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Hobbies</Text>
                     <Text style={styles.infoText}>{profileData.hobbies}</Text>
@@ -384,7 +373,6 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  {/* <Ionicons name="color-palette-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Skin Tone</Text>
                     <Text style={styles.infoText}>{profileData.skin_tone}</Text>
@@ -395,7 +383,6 @@ export default function Profile({ navigation }) {
           </Animatable.View>
         </View>
       ) : (
-        // Profile edit view
         <View style={styles.container}>
           <Animatable.View
             animation="fadeInDown"

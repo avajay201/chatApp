@@ -50,7 +50,7 @@ const Checkout = ({ route, navigation }) => {
   const handleApplyCoupon = async () => {
     setLoading(true);
     try {
-      const result = await applyCoupon({subscription_id: 1, coupon_code: coupon, addons: selectedAddons});
+      const result = await applyCoupon({subscription_id: id, coupon_code: coupon, addons: selectedAddons});
       if (result && result[0] === 200) {
         setDiscountedPrice(result[1].final_total_price);
         setCouponApplied(result[1].discount);
@@ -71,7 +71,7 @@ const Checkout = ({ route, navigation }) => {
     const result = await subscriptionPayment(data);
     setIsProcessingPayment(false);
     if (result && result[0] === 200) {
-      navigation.navigate('Payment', { paymentUrl: result[1].redirect_url, coupon: couponApplied ? coupon : null, subscription_id: id, addons: addons });
+      navigation.navigate('Payment', { paymentUrl: result[1].redirect_url, coupon: couponApplied ? coupon : null, subscription_id: id, addons: selectedAddons });
     } else {
       ToastAndroid.show("Sorry! We can't process this subscription at this time.", ToastAndroid.SHORT);
     }

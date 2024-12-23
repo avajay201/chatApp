@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Alert, ToastAndroid } from "react-native";
 import { WebView } from "react-native-webview";
 import { useRoute } from "@react-navigation/native";
 import { subscriptionPaymentCreate } from './../actions/APIActions';
-import axios from "axios";
 
 
 const Payment = ({ navigation }) => {
@@ -12,22 +11,25 @@ const Payment = ({ navigation }) => {
 
   const paymentStatusSave = async(url)=>{
     const data = {payment_url: url, coupon: coupon, subscription_id: subscription_id, addons: addons};
-    await subscriptionPaymentCreate(data);
+    const result = await subscriptionPaymentCreate(data);
+    if (result[0] === 200){
+      return;
+    }
+    if (result[0] === 201){
+      ToastAndroid.show('Subscription purchased successfully.', ToastAndroid.SHORT);
+      navigation.navigate('Home');
+    }
+    else{
+      ToastAndroid.show('Subscription purchased failed.', ToastAndroid.LONG);
+      navigation.navigate('Home');
+    }
   }
 
   const handlePayment = async(e)=>{
     const url = e?.url;
-    console.log('url>>>>>>>>>>', url);
-    if (url.includes('https://testtxncdn.payubiz.in') && url.includes('mihpayid')){
-      const result = await paymentStatusSave(url);
-      if (result[0] === 201){
-        ToastAndroid.show('Subscription purchased successfully.', ToastAndroid.SHORT);
-        navigation.navigate('Home');
-      }
-      else{
-        ToastAndroid.show('Subscription purchased failed. If your money is debited, please contact to our supports team.', ToastAndroid.LONG);
-        navigation.navigate('Home');
-      }
+    console.log('url>>>', url);
+    if (url.includes('test.payu.in') && url.includes('CommonPgResponseHandler')){
+      await paymentStatusSave(url);
     }
     if (url.includes('cancel?status=cancel')){
       navigation.navigate('Home');

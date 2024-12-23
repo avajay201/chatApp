@@ -28,6 +28,7 @@ import {
   sendMediaMessage,
   reportUser,
   searchGifs,
+  callLimit,
 } from "../../actions/APIActions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SOCKET_URL } from "../../actions/API";
@@ -115,7 +116,6 @@ const Chat = ({ navigation }) => {
   // scroll messages start
   useEffect(() => {
     if (flatListRefs.current && sections.length > 0) {
-      console.log('Scrolling*******************');
       flatListRefs.current.scrollToLocation({
         sectionIndex: sections.length - 1,
         itemIndex: sections[sections.length - 1].data.length - 1,
@@ -261,14 +261,17 @@ const Chat = ({ navigation }) => {
     chatWS.current = new WebSocket(`${SOCKET_URL}/${roomName}/${token}/`);
 
     chatWS.current.onopen = () => {
-      // console.log("WebSocket connected");
+      console.log("WebSocket connected");
     };
 
     chatWS.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      // console.log("Message received from server:", data);
       const messageData = data["message"];
       const status = messageData["status"];
+      if (status === 'subscription' && messageData["sender"] === user) {
+        ToastAndroid.show(messageData["message"], ToastAndroid.LONG);
+        return
+      }
       if (status === "msg") {
         const message = messageData["message"];
         setMessages((prev) => {
@@ -318,7 +321,7 @@ const Chat = ({ navigation }) => {
     };
 
     chatWS.current.onclose = () => {
-      // console.log("WebSocket disconnected");
+      console.log("WebSocket disconnected");
       if (newMessage || selectedMedia.length > 0) {
         ToastAndroid.show("Something went wrong!", ToastAndroid.SHORT);
         navigation.navigate("Home");
@@ -519,7 +522,7 @@ const Chat = ({ navigation }) => {
             await AsyncStorage.removeItem("auth_user");
             navigation.navigate("Login");
           } else {
-            ToastAndroid.show("Failed to send file!", ToastAndroid.SHORT);
+            ToastAndroid.show(response[1], ToastAndroid.SHORT);
           }
         }
         setMessageSendingLoader(false);
@@ -569,7 +572,7 @@ const Chat = ({ navigation }) => {
           await AsyncStorage.removeItem("auth_user");
           navigation.navigate("Login");
         } else {
-          ToastAndroid.show("Failed to send file!", ToastAndroid.SHORT);
+          ToastAndroid.show(response[1], ToastAndroid.SHORT);
         }
         setMessageSendingLoader(false);
       } else {
@@ -733,9 +736,14 @@ const Chat = ({ navigation }) => {
   // Audio call end
 
   // Video call start
-  const handleVideoCall = (id) => {
-    // ToastAndroid.show("Video calling...", ToastAndroid.SHORT);
-    navigation.navigate('VideoCall', { userName: userName, user: user, status: 'out', user_id: id });
+  const handleVideoCall = async(id) => {
+    const result = await callLimit();
+    if (result && result[0] === 200){
+      navigation.navigate('VideoCall', { userName: userName, user: user, status: 'out', user_id: id });
+    }
+    else{
+      ToastAndroid.show('You have exceeded the calls limit for your current subscription.', ToastAndroid.LONG);
+    }
   };
   // Video call end
 
@@ -856,7 +864,8 @@ const Chat = ({ navigation }) => {
         {/* Call and Menu option */}
         <View style={styles.iconContainer}>
           <TouchableOpacity
-            disabled={messageSendingLoader || (chatOn && !userProfile.other_blocked ? false : true)}
+            // disabled={messageSendingLoader || (chatOn && !userProfile.other_blocked ? false : true)}
+            disabled={true}
             onPress={handleAudioCall}
             style={styles.callIcon}
           >

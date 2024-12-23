@@ -1,10 +1,10 @@
-export const BASE_URL = 'http://192.168.1.101:8000';
-export const SOCKET_URL = 'ws://192.168.1.101:8000/mchat/chat';
-export const G_SOCKET_URL = 'ws://192.168.1.101:8000/mchat/g_chat';
-export const AC_SOCKET_URL = 'ws://192.168.1.101:8000/mcall/call';
-export const CALL_SOCKET_URL = 'ws://192.168.1.101:8000/handle-call';
+export const BASE_URL = 'https://18e9-15-235-193-118.ngrok-free.app';
+export const SOCKET_URL = 'wss://18e9-15-235-193-118.ngrok-free.app/mchat/chat';
+export const G_SOCKET_URL = 'wss://18e9-15-235-193-118.ngrok-free.app/mchat/g_chat';
+export const AC_SOCKET_URL = 'wss://18e9-15-235-193-118.ngrok-free.app/mcall/call';
+export const CALL_SOCKET_URL = 'wss://18e9-15-235-193-118.ngrok-free.app/handle-call';
 export const METRI_URL = 'https://coorgimangala.com/api';
-export const USER_SUGGESTION_URL = 'http://192.168.1.111:8001';
+export const USER_SUGGESTION_URL = 'https://18e9-15-235-193-118.ngrok-free.app';
 export const METRI_MEDIA_URL = 'https://coorgimangala.com';
 export const GIF_API = 'https://tenor.googleapis.com/v2/search';
 
@@ -28,8 +28,8 @@ export const ENDPOINTS = {
     subscriptionPayment: BASE_URL + '/subscriptions/make-payment/',
     subscriptionPaymentCreate: BASE_URL + '/subscriptions/payment-create/',
     applyCoupon: BASE_URL + '/subscriptions/apply-coupon/',
-    addOns: USER_SUGGESTION_URL + '/addons/',
     userProfile: METRI_MEDIA_URL + '/profiles/1/',
     notifications: BASE_URL + '/chat/notifications/',
     calls: BASE_URL + '/calls/list-calls/',
+    callLimit: BASE_URL + '/calls/call-limit/',
 };

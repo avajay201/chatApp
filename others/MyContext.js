@@ -109,7 +109,7 @@ export const MainProvider = ({ children }) => {
 
     gChatWS.current.onopen = () => {
       // console.log('G WS connected');
-      ToastAndroid.show('connected', ToastAndroid.SHORT);
+      // ToastAndroid.show('connected', ToastAndroid.SHORT);
     };
 
     gChatWS.current.onmessage = (event) => {
@@ -120,7 +120,7 @@ export const MainProvider = ({ children }) => {
 
     gChatWS.current.onclose = () => {
       // console.log('G WS dis-connected');
-      ToastAndroid.show('dis-connected', ToastAndroid.SHORT);
+      // ToastAndroid.show('dis-connected', ToastAndroid.SHORT);
       gChatWS.current = null;
     };
 

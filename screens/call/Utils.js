@@ -33,4 +33,20 @@ export default class Utils {
             stream.getVideoTracks().forEach(track => track.stop());
         }
     }
+
+
+    // Audio call
+    static async getAudioStream() {
+        if (!isAudio) {
+            return null; // Return null if audio capture is not requested
+        }
+
+        // Get audio stream only
+        const stream = await mediaDevices.getUserMedia({
+            audio: true,
+            video: false,
+        });
+
+        return stream || null; // Return the stream if available, otherwise null
+    }
 }

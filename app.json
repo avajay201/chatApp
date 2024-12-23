@@ -1,31 +1,27 @@
 {
   "expo": {
-    "name": "LetsFun",
+    "name": "Mr Mrs Weds",
     "slug": "letsfun",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "infoPlist": {
-        "NSCameraUsageDescription": "This app requires access to the camera.",
-        "NSMicrophoneUsageDescription": "This app requires access to the microphone."
-      },
-      "bitcode": false,
-      "bundleIdentifier": "com.fun.letsfun"
+      "bitcode": false
     },
     "android": {
-      "package": "com.fun.letsfun",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.fun.letsfun",
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "CAMERA",
@@ -40,7 +36,8 @@
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.WAKE_LOCK",
         "android.permission.BLUETOOTH"
-      ]
+      ],
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -51,10 +48,10 @@
     "scheme": "myapp",
     "extra": {
       "eas": {
-        "projectId": "5f26a376-ed38-4b28-988e-2fad5805ad3e"
+        "projectId": "3d41a4b7-7c83-4820-92a7-6c699b0c958e"
       }
     },
-    "owner": "avajay928",
+    "owner": "praduman001",
     "notification": {
       "icon": "./assets/icon.png",
       "color": "#000000"

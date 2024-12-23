@@ -46,10 +46,11 @@ const SubscriptionPage = ({ navigation }) => {
               </Text>
 
               <TouchableOpacity
-                style={styles.payButton}
-                onPress={()=>handlePayment(plan?.id, plan?.price, plan?.addons)}
+                style={[styles.payButton, {backgroundColor: plan.is_purchased ? 'gray' : '#800925'}]}
+                disabled={plan.is_purchased ? true : false}
+                onPress={()=> plan.is_purchased ? null : handlePayment(plan?.id, plan?.price, plan?.addons)}
               >
-                <Text style={styles.payButtonText}>Purchase</Text>
+                <Text style={styles.payButtonText}>{plan.is_purchased ? 'Purchased' : 'Purchase'}</Text>
               </TouchableOpacity>
             </View>
           ))
@@ -111,7 +112,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   payButton: {
-    backgroundColor: "#800925",
     paddingVertical: 10,
     borderRadius: 5,
     alignItems: "center",

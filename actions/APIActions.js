@@ -115,7 +115,7 @@ export const sendMediaMessage = async(data)=>{
     }
     catch(error){
         if (error.response?.data){
-            return [error.response?.status, error.response?.data?.detail];
+            return [error.response?.status, error.response?.data?.error];
         };
     }
 };
@@ -214,7 +214,12 @@ export const searchGifs = async(query)=>{
 
 export const getSubcriptions = async()=>{
     try{
-        const response = await axios.get(ENDPOINTS.subscriptions);
+        const authToken = await getToken();
+        const response = await axios.get(ENDPOINTS.subscriptions, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+            },
+        });
         return [200, response.data];
     }
     catch(error){
@@ -261,9 +266,10 @@ export const subscriptionPaymentCreate = async(data)=>{
                 'Authorization': `Bearer ${authToken}`,
             },
         });
-        return [200, response.data];
+        return [response.status, response.data];
     }
     catch(error){
+        console.log('error.response?.data?>>>', error.response?.data)
         if (error.response?.data){
             return [error.response?.status, error.response?.data?.detail];
         };
@@ -339,6 +345,24 @@ export const getCalls = async()=>{
         return [200, response.data];
     }
     catch(error){
+        if (error.response?.data){
+            return [error.response?.status, error.response?.data?.detail];
+        };
+    }
+};
+
+export const callLimit = async()=>{
+    try{
+        const authToken = await getToken();
+        const response = await axios.get(ENDPOINTS.callLimit, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+            }
+        });
+        return [200, response.data];
+    }
+    catch(error){
+        console.log('error>>>>', error);
         if (error.response?.data){
             return [error.response?.status, error.response?.data?.detail];
         };
