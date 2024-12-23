@@ -75,11 +75,28 @@ export default function Profile({ navigation }) {
         type: `image/${fileType}`,
       });
     };
-    formData.append('first_name', profileEditData.first_name);
-    formData.append('last_name', profileEditData.last_name);
-    formData.append('dob', profileEditData.dob);
-    formData.append('gender', profileEditData.gender);
-    formData.append('location', profileEditData.location);
+    formData.append('first_name', profileEditData.first_name ? profileEditData.first_name : '');
+    formData.append('last_name', profileEditData.last_name ? profileEditData.last_name : '');
+    formData.append('dob', profileEditData.dob ? profileEditData.dob : '');
+    formData.append('gender', profileEditData.gender ? profileEditData.gender : '');
+    formData.append('location', profileEditData.location ? profileEditData.location : '');
+    formData.append('mobile_number', profileEditData.mobile_number ? profileEditData.mobile_number : '');
+    formData.append('headline', profileEditData.headline ? profileEditData.headline : '');
+    formData.append('about_me', profileEditData.about_me ? profileEditData.about_me : '');
+    formData.append('caste', profileEditData.caste ? profileEditData.caste : '');
+    formData.append('religion', profileEditData.religion ? profileEditData.religion : '');
+    formData.append('height', profileEditData.height ? profileEditData.height : '');
+    formData.append('weight', profileEditData.weight ? profileEditData.weight : '');
+    formData.append('education', profileEditData.education ? profileEditData.education : '');
+    formData.append('occupation', profileEditData.occupation ? profileEditData.occupation : '');
+    formData.append('income', profileEditData.income ? profileEditData.income : '');
+    formData.append('family_status', profileEditData.family_status ? profileEditData.family_status : '');
+    formData.append('alcoholic', profileEditData.alcoholic ? profileEditData.alcoholic : '');
+    formData.append('smoker', profileEditData.smoker ? profileEditData.smoker : '');
+    formData.append('hobbies', profileEditData.hobbies ? profileEditData.hobbies : '');
+    formData.append('skin_tone', profileEditData.skin_tone ? profileEditData.skin_tone : '');
+
+    console.log('formData>>>', formData);
 
     const response = await updateUserProfile(formData);
     if (response[0] === 200){
@@ -226,15 +243,23 @@ export default function Profile({ navigation }) {
 
               <Animatable.View animation="fadeInUp" duration={1500}>
                 <View style={styles.detailsCard}>
-                  <Ionicons name="mail-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="mail-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Email</Text>
                     <Text style={styles.infoText}>{profileData.email}</Text>
                   </View>
                 </View>
+                
+                <View style={styles.detailsCard}>
+                  {/* <Ionicons name="mail-outline" size={24} color="#009387" /> */}
+                  <View style={styles.infoBox}>
+                    <Text style={styles.label}>Mobile Number</Text>
+                    <Text style={styles.infoText}>{profileData.mobile_number}</Text>
+                  </View>
+                </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="time-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="time-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>DOB</Text>
                     <Text style={styles.infoText}>{profileData.dob ? formatDate(profileData.dob) : null}</Text>
@@ -242,7 +267,7 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="male-female" size={24} color="#009387" />
+                  {/* <Ionicons name="male-female" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Gender</Text>
                     <Text style={styles.infoText}>{profileData.gender}</Text>
@@ -250,7 +275,7 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="location-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="location-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Location</Text>
                     <Text style={styles.infoText}>{profileData.location}</Text>
@@ -258,48 +283,48 @@ export default function Profile({ navigation }) {
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="megaphone-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="megaphone-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Headline</Text>
-                    <Text style={styles.infoText}>My Headline</Text>
+                    <Text style={styles.infoText}>{profileData.headline}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="person-circle-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="person-circle-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>About me</Text>
-                    <Text style={styles.infoText}>I am admin</Text>
+                    <Text style={styles.infoText}>{profileData.about_me}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="layers-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="layers-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Caste</Text>
-                    <Text style={styles.infoText}>OBC</Text>
+                    <Text style={styles.infoText}>{profileData.caste}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Religion</Text>
-                    <Text style={styles.infoText}>Hindu</Text>
+                    <Text style={styles.infoText}>{profileData.religion}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Height</Text>
-                    <Text style={styles.infoText}>{profileData.height} CM</Text>
+                    <Text style={styles.infoText}>{profileData.height ? profileData.height + 'CM' : ''}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="barbell-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="barbell-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Weight</Text>
-                    <Text style={styles.infoText}>{profileData.weight} KG</Text>
+                    <Text style={styles.infoText}>{profileData.weight ? profileData.weight + 'KG' : ''}</Text>
                   </View>
                 </View>
 
@@ -307,62 +332,62 @@ export default function Profile({ navigation }) {
                 <View style={styles.detailsCard}>
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Education</Text>
-                    <Text style={styles.infoText}>Master</Text>
+                    <Text style={styles.infoText}>{profileData.education}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="briefcase-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="briefcase-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Occupation</Text>
-                    <Text style={styles.infoText}>XYZ</Text>
+                    <Text style={styles.infoText}>{profileData.occupation}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="cash-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="cash-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Income</Text>
-                    <Text style={styles.infoText}>Rs.100000.00</Text>
+                    <Text style={styles.infoText}>{profileData.income ? 'Rs.' + profileData.income : '' }</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="home-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="home-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Family Status</Text>
-                    <Text style={styles.infoText}>Nuclear</Text>
+                    <Text style={styles.infoText}>{profileData.family_status}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="wine-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="wine-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Alcoholic</Text>
-                    <Text style={styles.infoText}>No</Text>
+                    <Text style={styles.infoText}>{profileData.alcoholic}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Smoker</Text>
-                    <Text style={styles.infoText}>Yes</Text>
+                    <Text style={styles.infoText}>{profileData.smoker}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="musical-notes-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="musical-notes-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Hobbies</Text>
-                    <Text style={styles.infoText}>Music</Text>
+                    <Text style={styles.infoText}>{profileData.hobbies}</Text>
                   </View>
                 </View>
 
                 <View style={styles.detailsCard}>
-                  <Ionicons name="color-palette-outline" size={24} color="#009387" />
+                  {/* <Ionicons name="color-palette-outline" size={24} color="#009387" /> */}
                   <View style={styles.infoBox}>
                     <Text style={styles.label}>Skin Tone</Text>
-                    <Text style={styles.infoText}>Fair</Text>
+                    <Text style={styles.infoText}>{profileData.skin_tone}</Text>
                   </View>
                 </View>
               </Animatable.View>
@@ -419,6 +444,15 @@ export default function Profile({ navigation }) {
                   onChangeText={(text) => handleInputChange("first_name", text)}
                   editable={!loading}
                 />
+                
+                <Text style={styles.label}>Mobile Number</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Mobile Number"
+                  value={profileEditData.mobile_number}
+                  onChangeText={(text) => handleInputChange("mobile_number", text)}
+                  editable={!loading}
+                />
 
                 <Text style={styles.label}>Last Name</Text>
                 <TextInput
@@ -448,17 +482,17 @@ export default function Profile({ navigation }) {
 
                 <Text style={styles.label}>Gender</Text>
                 <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={profileEditData.gender}
-                  style={styles.picker}
-                  onValueChange={(itemValue) => handleInputChange('gender', itemValue)}
-                  enabled={!loading}
-                >
-                  <Picker.Item label="Male" value="Male" />
-                  <Picker.Item label="Female" value="Female" />
-                  <Picker.Item label="Other" value="Other" />
-                </Picker>
-              </View>
+                  <Picker
+                    selectedValue={profileEditData.gender}
+                    style={styles.picker}
+                    onValueChange={(itemValue) => handleInputChange('gender', itemValue)}
+                    enabled={!loading}
+                  >
+                    <Picker.Item label="Male" value="Male" />
+                    <Picker.Item label="Female" value="Female" />
+                    <Picker.Item label="Other" value="Other" />
+                  </Picker>
+                </View>
 
                 <Text style={styles.label}>Location</Text>
                 <TextInput
@@ -473,126 +507,134 @@ export default function Profile({ navigation }) {
                 <TextInput
                   style={styles.input}
                   placeholder="Headline"
-                  value="My Headlines"
+                  value={profileEditData.headline}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('headline', itemValue)}
                 />
 
                 <Text style={styles.label}>About me</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="About me"
-                  value="I am admin"
+                  value={profileEditData.about_me}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('about_me', itemValue)}
                 />
 
                 <Text style={styles.label}>Caste</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Caste"
-                  value="OBC"
+                  value={profileEditData.caste}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('caste', itemValue)}
                 />
 
                 <Text style={styles.label}>Religion</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Religion"
-                  value="Hindu"
+                  value={profileEditData.religion}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('religion', itemValue)}
                 />
 
                 <Text style={styles.label}>Height</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Height"
-                  value="170.00CM"
+                  placeholder="Height(CM)"
+                  value={profileEditData.height}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('height', itemValue)}
                 />
 
                 <Text style={styles.label}>Weight</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Weight"
-                  value="70.00KG"
+                  placeholder="Weight(KG)"
+                  value={profileEditData.weight}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('weight', itemValue)}
                 />
 
                 <Text style={styles.label}>Education</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Education"
-                  value="Master"
+                  value={profileEditData.education}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('education', itemValue)}
                 />
 
                 <Text style={styles.label}>Occupation</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Occupation"
-                  value="XYZ"
+                  value={profileEditData.occupation}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('occupation', itemValue)}
                 />
 
                 <Text style={styles.label}>Income</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Income"
-                  value="Rs. 100000.00"
+                  value={profileEditData.income}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('income', itemValue)}
                 />
 
                 <Text style={styles.label}>Family Status</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Family Status"
-                  value="Nuclear"
+                  value={profileEditData.family_status}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('family_status', itemValue)}
                 />
 
                 <Text style={styles.label}>Alcoholic</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Alcoholic"
-                  value="No"
-                  editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
-                />
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={profileEditData.alcoholic}
+                    style={styles.picker}
+                    onValueChange={(itemValue) => handleInputChange('alcoholic', itemValue)}
+                    enabled={!loading}
+                  >
+                    <Picker.Item label="No" value="No" />
+                    <Picker.Item label="Yes" value="Yes" />
+                  </Picker>
+                </View>
 
                 <Text style={styles.label}>Smoker</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Smoker"
-                  value="No"
-                  editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
-                />
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={profileEditData.smoker}
+                    style={styles.picker}
+                    onValueChange={(itemValue) => handleInputChange('smoker', itemValue)}
+                    enabled={!loading}
+                  >
+                    <Picker.Item label="No" value="No" />
+                    <Picker.Item label="Yes" value="Yes" />
+                  </Picker>
+                </View>
 
                 <Text style={styles.label}>Hobbies</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Hobbies"
-                  value="Music"
+                  value={profileEditData.hobbies}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('hobbies', itemValue)}
                 />
 
                 <Text style={styles.label}>Skin Tone</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Skin Tone"
-                  value="Fair"
+                  value={profileEditData.skin_tone}
                   editable={!loading}
-                  onChangeText={(text) => handleInputChange("location", text)}
+                  onChangeText={(itemValue) => handleInputChange('skin_tone', itemValue)}
                 />
 
                 {loading ? (

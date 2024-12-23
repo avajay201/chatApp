@@ -61,6 +61,7 @@ export const updateUserProfile = async(data)=>{
         return [200, response.data];
     }
     catch(error){
+        console.log('error.response?.data>>>', error.response?.data);
         if (error.response?.data){
             return [error.response?.status, error.response?.data?.detail];
         };
@@ -237,7 +238,12 @@ export const userSuggestions = async(data)=>{
 
 export const subscriptionPayment = async(data)=>{
     try{
-        const response = await axios.get(`${ENDPOINTS.subscriptionPayment}/?subscription_id=${data.subscription_id}&user_id=${data.user_id}&price=${data.price}`);
+        const authToken = await getToken();
+        const response = await axios.post(ENDPOINTS.subscriptionPayment, data, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+            },
+        });
         return [200, response.data];
     }
     catch(error){
@@ -249,7 +255,12 @@ export const subscriptionPayment = async(data)=>{
 
 export const subscriptionPaymentCreate = async(data)=>{
     try{
-        const response = await axios.post(ENDPOINTS.subscriptionPaymentCreate, data);
+        const authToken = await getToken();
+        const response = await axios.post(ENDPOINTS.subscriptionPaymentCreate, data, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+            },
+        });
         return [200, response.data];
     }
     catch(error){
@@ -259,26 +270,14 @@ export const subscriptionPaymentCreate = async(data)=>{
     }
 };
 
-export const applyCoupon = async(coupon)=>{
+export const applyCoupon = async(data)=>{
     try{
-        const response = await axios.get(`${ENDPOINTS.applyCoupon}/${coupon}`);
+        const response = await axios.post(ENDPOINTS.applyCoupon, data);
         return [200, response.data];
     }
     catch(error){
         if (error.response?.data){
-            return [error.response?.status, error.response?.data?.detail];
-        };
-    }
-};
-
-export const addOns = async()=>{
-    try{
-        const response = await axios.get(ENDPOINTS.addOns);
-        return [200, response.data];
-    }
-    catch(error){
-        if (error.response?.data){
-            return [error.response?.status, error.response?.data?.detail];
+            return [error.response?.status, error.response?.data?.error];
         };
     }
 };

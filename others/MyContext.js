@@ -15,6 +15,7 @@ export const MainProvider = ({ children }) => {
   const gChatWS = useRef(null);
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
+  const [deviceToken, setDeviceToken] = useState(null);
   const [wsData, setWSData] = useState(null);
   const [isLogged, setIsLogged] = useState(false);
   const [gettingCall, setGettingCall] = useState(false);
@@ -143,7 +144,7 @@ export const MainProvider = ({ children }) => {
   };
 
   return (
-    <MainContext.Provider value={{ wsData, isLogged, setIsLogged, configuration, pc, connecting, callPicked, setCallPicked }}>
+    <MainContext.Provider value={{ wsData, isLogged, setIsLogged, configuration, pc, connecting, callPicked, setCallPicked, deviceToken, setDeviceToken }}>
       {gettingCall ? (
         <GestureHandlerRootView style={{ flex: 1 }}>
           <IncomingCall onAnswer={handleAnswer} onDecline={handleDecline} userName={caller} />

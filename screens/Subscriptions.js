@@ -28,8 +28,8 @@ const SubscriptionPage = ({ navigation }) => {
     allSubscriptions();
   }, []);
 
-  const handlePayment = async(sub_id, price) => {
-    navigation.navigate('Checkout', { price: price, id: sub_id});
+  const handlePayment = async(sub_id, price, addons) => {
+    navigation.navigate('Checkout', { price: price, id: sub_id, addons: addons});
   };
 
   return (
@@ -45,24 +45,18 @@ const SubscriptionPage = ({ navigation }) => {
                 {plan?.description?.replace(/\n/g, " ").replace(/<br>/g, "\n")}
               </Text>
 
-              {plan?.payment_url ? (
-                <TouchableOpacity
-                  style={styles.payButton}
-                  onPress={()=>handlePayment(plan?.id, plan?.price)}
-                >
-                  <Text style={styles.payButtonText}>Purchase</Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={styles.notAvailable}>
-                  <Text style={styles.notAvailableText}>Not Available</Text>
-                </View>
-              )}
+              <TouchableOpacity
+                style={styles.payButton}
+                onPress={()=>handlePayment(plan?.id, plan?.price, plan?.addons)}
+              >
+                <Text style={styles.payButtonText}>Purchase</Text>
+              </TouchableOpacity>
             </View>
           ))
           :
           (!loading && 
           <View style={styles.noSubs}>
-            <Text style={styles.noSubsTest}>User not found!</Text>
+            <Text style={styles.noSubsTest}>No subscriptions!</Text>
           </View>)
         }
       </ScrollView>

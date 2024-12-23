@@ -157,6 +157,10 @@ export default function Home({ navigation }) {
   // Get profile start
   const fetchProfile = async()=>{
     const response = await userProfile();
+    if (!response){
+      ToastAndroid.show('Something went wrong.', ToastAndroid.SHORT);
+      return
+    }
     if (response[0] === 200){
       setProfileData(response[1]);
     }
@@ -185,6 +189,10 @@ export default function Home({ navigation }) {
     const auth_user = await AsyncStorage.getItem("auth_user");
     setUser(auth_user);
     const result = await messageNotifications();
+    if (!result){
+      ToastAndroid.show('Something went wrong.', ToastAndroid.SHORT);
+      return
+    }
     if (result[0] === 200) {
       setNotificationsCount(result[1].length);
     } else if (result[0] === 401) {

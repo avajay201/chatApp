@@ -8,31 +8,30 @@ import axios from "axios";
 
 const Payment = ({ navigation }) => {
   const route = useRoute();
-  const { paymentUrl, coupon } = route.params;
+  const { paymentUrl, coupon, subscription_id, addons } = route.params;
 
   const paymentStatusSave = async(url)=>{
-    const data = {payment_url: url, coupon: coupon};
+    const data = {payment_url: url, coupon: coupon, subscription_id: subscription_id, addons: addons};
     await subscriptionPaymentCreate(data);
   }
 
   const handlePayment = async(e)=>{
     const url = e?.url;
-    if (url.includes('https://test.payu.in') && url.includes('CommonPgResponseHandler')){
-      const response = await axios.get(url);
-      if (response.status === 200){
-        paymentStatusSave(url);
+    console.log('url>>>>>>>>>>', url);
+    if (url.includes('https://testtxncdn.payubiz.in') && url.includes('mihpayid')){
+      const result = await paymentStatusSave(url);
+      if (result[0] === 201){
+        ToastAndroid.show('Subscription purchased successfully.', ToastAndroid.SHORT);
+        navigation.navigate('Home');
       }
       else{
-        // console.log('Payment failed!') ;
+        ToastAndroid.show('Subscription purchased failed. If your money is debited, please contact to our supports team.', ToastAndroid.LONG);
+        navigation.navigate('Home');
       }
     }
     if (url.includes('cancel?status=cancel')){
       navigation.navigate('Home');
       ToastAndroid.show('Subscription purchase cancelled.', ToastAndroid.SHORT);
-    }
-    if (url === 'https://test-payment-middleware.payu.in/simulatorResponse'){
-      navigation.navigate('Home');
-      ToastAndroid.show('Subscription purchased successfully.', ToastAndroid.SHORT);
     }
   }
 

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,70 +10,50 @@ import {
   Modal,
 } from "react-native";
 import CheckBox from "react-native-check-box";
-import { applyCoupon, subscriptionPayment, addOns } from './../actions/APIActions';
-import { useFocusEffect } from '@react-navigation/native';
+import { applyCoupon, subscriptionPayment } from './../actions/APIActions';
 
 const Checkout = ({ route, navigation }) => {
-  const { price, id } = route.params;
+  const { price, id, addons } = route.params;
   const [coupon, setCoupon] = useState('');
   const [loading, setLoading] = useState(false);
   const [discountedPrice, setDiscountedPrice] = useState(price);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [addons, setAddons] = useState({});
-  const [addOnsdata, setAddOnsData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedAddon, setSelectedAddon] = useState(null);
-  const [couponApplied, setCouponApplied] = useState(false);
+  const [viewAddon, setViewAddon] = useState(null);
+  const [selectedAddons, setSelectedAddons] = useState([]);
+  const [couponApplied, setCouponApplied] = useState(null);
 
-  const getAddOns = async () => {
-    setIsProcessingPayment(true);
-    const result = await addOns();
-    if (result[0] === 200) {
-      setAddOnsData(result[1]);
+
+  const handleAddonsChange = (addonId) => {
+    resetCoupon();
+    setSelectedAddons(prevAddons => {
+      if (prevAddons.includes(addonId)) {
+        return prevAddons.filter(id => id !== addonId);
+      } else {
+        return [...prevAddons, addonId];
+      }
+    });
+  };
+
+  useEffect(() => {
+    const filteredAddons = addons.filter(addon => selectedAddons.includes(addon.id));
+    
+    let addonsPrice = 0;
+    for (let addon of filteredAddons) {
+      addonsPrice += parseFloat(addon.price);
     }
-    setIsProcessingPayment(false);
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      getAddOns();
-    }, [])
-  );
-
-  const handleAddonsChange = (addonName, addonPrice) => {
-    const isSelected = addons[addonName] || false;
-    const newAddons = { ...addons, [addonName]: !isSelected };
-    const priceAdjustment = isSelected ? -addonPrice : addonPrice;
-    const newTotal = discountedPrice + priceAdjustment;
-
-    setAddons(newAddons);
-    setDiscountedPrice(newTotal);
-  };
+  
+    const newPrice = parseFloat(price) + addonsPrice;
+    setDiscountedPrice(newPrice);
+  }, [selectedAddons, addons, price]);
 
   const handleApplyCoupon = async () => {
     setLoading(true);
     try {
-      const result = await applyCoupon(coupon);
+      const result = await applyCoupon({subscription_id: 1, coupon_code: coupon, addons: selectedAddons});
       if (result && result[0] === 200) {
-        const discount = Number(result[1].discount_percentage);
-        
-        // Calculate the total price including selected add-ons
-        const addonsPrice = Object.keys(addons).reduce((total, addonName) => {
-          if (addons[addonName]) {
-            const addon = addOnsdata.find(item => item.addon_name === addonName);
-            return total + (addon ? addon.price : 0);
-          }
-          return total;
-        }, 0);
-  
-        const totalPrice = price + addonsPrice;
-  
-        // Apply discount to the total price
-        const discountAmount = (totalPrice * discount) / 100;
-        const newPrice = totalPrice - discountAmount;
-
-        setDiscountedPrice(newPrice);
-        setCouponApplied(true);
+        setDiscountedPrice(result[1].final_total_price);
+        setCouponApplied(result[1].discount);
         ToastAndroid.show('Coupon applied successfully!', ToastAndroid.SHORT);
       } else {
         ToastAndroid.show('Invalid coupon code!', ToastAndroid.SHORT);
@@ -91,21 +71,27 @@ const Checkout = ({ route, navigation }) => {
     const result = await subscriptionPayment(data);
     setIsProcessingPayment(false);
     if (result && result[0] === 200) {
-      navigation.navigate('Payment', { paymentUrl: result[1].redirect_url, coupon: couponApplied ? coupon : null });
+      navigation.navigate('Payment', { paymentUrl: result[1].redirect_url, coupon: couponApplied ? coupon : null, subscription_id: id, addons: addons });
     } else {
       ToastAndroid.show("Sorry! We can't process this subscription at this time.", ToastAndroid.SHORT);
     }
   };
 
   const openAddonDetails = (addon) => {
-    setSelectedAddon(addon);
+    setViewAddon(addon);
     setModalVisible(true);
   };
 
   const closeAddonDetails = () => {
     setModalVisible(false);
-    setSelectedAddon(null);
+    setViewAddon(null);
   };
+
+  const resetCoupon = ()=>{
+    setDiscountedPrice(price);
+    setCoupon('')
+    setCouponApplied(null);
+  }
 
   return (
     <View style={styles.container}>
@@ -115,29 +101,31 @@ const Checkout = ({ route, navigation }) => {
       <TextInput
         style={styles.couponInput}
         placeholder="Enter coupon code"
+        editable={couponApplied ? false : !loading}
         value={coupon}
         onChangeText={setCoupon}
       />
-      <TouchableOpacity style={styles.applyButton} onPress={handleApplyCoupon}>
+      <TouchableOpacity disabled={loading || couponApplied ? true : (coupon ? false : true)} style={[styles.applyButton, {backgroundColor: !coupon || loading || couponApplied ? 'gray' : 'green'}]} onPress={handleApplyCoupon}>
         {loading ? (
           <ActivityIndicator size="small" color="#fff" />
         ) : (
-          <Text style={styles.applyButtonText}>Apply</Text>
+          <Text style={styles.applyButtonText}>{couponApplied ? `${couponApplied}% off` : 'Apply'}</Text>
         )}
       </TouchableOpacity>
 
       {/* Add-ons Section */}
-      {addOnsdata.length > 0 && (
+      {addons.length > 0 && (
         <View style={styles.addonsContainer}>
           <Text style={styles.addonsTitle}>Add-ons:</Text>
-          {addOnsdata.map((addon, index) => (
+          {addons.map((addon, index) => (
             <View key={index} style={styles.addonItem}>
               <CheckBox
-                isChecked={addons[addon.addon_name] || false}
-                onClick={() => handleAddonsChange(addon.addon_name, addon.price)}
+                isChecked={selectedAddons.includes(addon.id)}
+                onClick={() => handleAddonsChange(addon.id)}
+                disabled={loading}
               />
               <Text style={styles.addonText}>
-                {addon.addon_name}: ₹{addon.price}
+                {addon.type === 'message' ? `${addon.messages} messages` : `${addon.calls} minutes calls`}: ₹{addon.price}
               </Text>
               <TouchableOpacity onPress={() => openAddonDetails(addon)}>
                 <Text style={styles.seePlanText}>See Plan</Text>
@@ -147,7 +135,7 @@ const Checkout = ({ route, navigation }) => {
         </View>
       )}
 
-      <TouchableOpacity style={styles.confirmButton} onPress={handlePurchase}>
+      <TouchableOpacity disabled={loading} style={[styles.confirmButton, {backgroundColor: loading ? 'gray' : '#800925'}]} onPress={handlePurchase}>
         <Text style={styles.confirmButtonText}>Confirm Purchase</Text>
       </TouchableOpacity>
 
@@ -166,15 +154,11 @@ const Checkout = ({ route, navigation }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            {selectedAddon && (
+            {viewAddon && (
               <>
-                <Text style={styles.modalTitle}>{selectedAddon.addon_name}</Text>
-                <Text>{selectedAddon.description}</Text>
-                <Text>Price: ₹{selectedAddon.price}</Text>
-                <Text>Users: {selectedAddon.user_count}</Text>
-                <Text>Videos: {selectedAddon.video_count}</Text>
-                <Text>Audio: {selectedAddon.audio_count}</Text>
-                <Text>Messages: {selectedAddon.special_message}</Text>
+                <Text style={styles.modalTitle}>Addon Plan</Text>
+                <Text>Price: ₹{viewAddon.price}</Text>
+                <Text>{viewAddon.type === 'message' ? `Message: ${viewAddon.messages}` : `Calls: ${viewAddon.calls} minutes`}</Text>
                 <TouchableOpacity onPress={closeAddonDetails} style={styles.closeButton}>
                   <Text style={styles.closeButtonText}>Close</Text>
                 </TouchableOpacity>
@@ -215,7 +199,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   applyButton: {
-    backgroundColor: 'green',
     paddingVertical: 10,
     borderRadius: 5,
     alignItems: 'center',
@@ -244,7 +227,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   confirmButton: {
-    backgroundColor: '#800925',
     paddingVertical: 10,
     borderRadius: 5,
     alignItems: 'center',
@@ -286,6 +268,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
+    textAlign: 'center',
   },
   closeButton: {
     backgroundColor: '#800925',

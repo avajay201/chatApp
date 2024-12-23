@@ -12,7 +12,7 @@ export default function Login({ navigation }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { setIsLogged } = useContext(MainContext);
+  const { setIsLogged, deviceToken } = useContext(MainContext);
 
   // Handle login start
   const handleLogin = async() => {
@@ -23,7 +23,7 @@ export default function Login({ navigation }) {
     };
 
     setLoading(true);
-    const loginData = {email: email, password: password};
+    const loginData = {email: email, password: password, device_token: deviceToken};
     const response = await userLogin(loginData,);
     if (response[0] === 400){
       setError(response[1]);

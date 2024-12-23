@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -18,6 +18,7 @@ import { MainProvider } from './others/MyContext';
 import Notification from './screens/Notifications';
 import SplashScreen from './others/SplashScreen';
 import Search from './screens/Search';
+import { MainContext } from './others/MyContext';
 
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
@@ -38,6 +39,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const navigationRef = useRef();
+  const { setDeviceToken } = useContext(MainContext);
 
   // Notification state
   const [expoPushToken, setExpoPushToken] = useState('');
@@ -46,6 +48,9 @@ function App() {
 
   useEffect(()=>{
     console.log('Device token:', expoPushToken);
+    if (expoPushToken){
+      setDeviceToken(expoPushToken);
+    }
   }, [expoPushToken]);
   
   useEffect(() => {
