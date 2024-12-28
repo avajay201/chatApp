@@ -1,7 +1,6 @@
 import React, { createContext, useEffect, useRef, useState } from 'react';
 import { G_SOCKET_URL } from '../actions/API';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ToastAndroid } from 'react-native';
 import { RTCPeerConnection, RTCSessionDescription } from 'react-native-webrtc';
 import { doc, collection, onSnapshot } from 'firebase/firestore';
 import db from '../others/FBSetup';
@@ -18,6 +17,7 @@ export const MainProvider = ({ children }) => {
   const [deviceToken, setDeviceToken] = useState(null);
   const [wsData, setWSData] = useState(null);
   const [isLogged, setIsLogged] = useState(false);
+  const [numExists, setNumExists] = useState(false);
   const [gettingCall, setGettingCall] = useState(false);
   const [callPicked, setCallPicked] = useState(false);
   const [caller, setCaller] = useState('');
@@ -54,6 +54,11 @@ export const MainProvider = ({ children }) => {
     }
   }, [isLogged]);
 
+  const updateCall = async()=>{
+    console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
+    await AsyncStorage.setItem('call', 'true');
+  };
+
   useEffect(()=>{
     if (!isLogged || callPicked || !user){
       return;
@@ -72,11 +77,13 @@ export const MainProvider = ({ children }) => {
       console.log('Caller:', data.caller);
       console.log('Receiver:', data.receiver);
       console.log('User:', user);
+      console.log('Call Type:', data.callType);
       if (pc.current && !pc.current.remoteDescription && data && data.answer && data.receiver == user){
         pc.current.setRemoteDescription(new RTCSessionDescription(data.answer));
       }
       if (data && data.offer && !connecting.current && data.receiver == user){
-        setCaller(data.caller);
+        updateCall();
+        setCaller({'callType': data.callType, 'userName': data.caller});
         setGettingCall(true);
         // console.log('*************Call comming*****************');
       }
@@ -103,12 +110,12 @@ export const MainProvider = ({ children }) => {
     if (isLogged === 'logout' || !isLogged || !user || !token || gChatWS.current){
       return
     }
-    // console.log('Global WS connecting...');
+    console.log('Global WS connecting...');
 
     gChatWS.current = new WebSocket(`${G_SOCKET_URL}/${token}/`);
 
     gChatWS.current.onopen = () => {
-      // console.log('G WS connected');
+      console.log('G WS connected');
       // ToastAndroid.show('connected', ToastAndroid.SHORT);
     };
 
@@ -119,7 +126,7 @@ export const MainProvider = ({ children }) => {
     };
 
     gChatWS.current.onclose = () => {
-      // console.log('G WS dis-connected');
+      console.log('G WS dis-connected');
       // ToastAndroid.show('dis-connected', ToastAndroid.SHORT);
       gChatWS.current = null;
     };
@@ -144,10 +151,10 @@ export const MainProvider = ({ children }) => {
   };
 
   return (
-    <MainContext.Provider value={{ wsData, isLogged, setIsLogged, configuration, pc, connecting, callPicked, setCallPicked, deviceToken, setDeviceToken }}>
+    <MainContext.Provider value={{ wsData, isLogged, setIsLogged, configuration, pc, connecting, callPicked, setCallPicked, deviceToken, setDeviceToken, numExists, setNumExists }}>
       {gettingCall ? (
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <IncomingCall onAnswer={handleAnswer} onDecline={handleDecline} userName={caller} />
+          <IncomingCall onAnswer={handleAnswer} onDecline={handleDecline} userName={caller?.userName} callType={caller?.callType} />
         </GestureHandlerRootView>
       ) : (
         children

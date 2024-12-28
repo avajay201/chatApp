@@ -33,6 +33,7 @@ export default function Calls({ navigation }) {
     setLoading(true);
     const result = await getCalls();
     if (result[0] === 200) {
+      console.log('result[1]>>>>', result[1]);
       setCalls(result[1]);
       setFilteredCalls(result[1]);
     } else if (result[0] === 401) {
@@ -71,7 +72,7 @@ export default function Calls({ navigation }) {
       delay={index * 100}
     >
       <TouchableOpacity style={styles.callItem}>
-        <Avatar src={item.profile_picture ? BASE_URL + item.profile_picture : null} name={item.caller} is_url={item.profile_picture ? true : false} />
+        <Avatar src={item.profile_picture ? BASE_URL + item.profile_picture : null} name={item.receiver} is_url={item.profile_picture ? true : false} />
         <View style={styles.callDetails}>
           <Text style={styles.callName}>{item.caller === user ? item.receiver : item.caller}</Text>
           <Text style={styles.callTime}>

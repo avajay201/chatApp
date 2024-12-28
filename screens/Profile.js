@@ -204,18 +204,16 @@ export default function Profile({ navigation }) {
           >
             <ScrollView>
               <View style={styles.profileContainer}>
-                <Animatable.Image
-                  animation="zoomIn"
-                  duration={1500}
-                  source={
-                    profileData.profile_picture
-                    ? profileData.profile_picture.startsWith('/media')
-                      ? { uri: BASE_URL + profileData.profile_picture }
-                      : { uri: profileData.profile_picture }
-                    : require('../assets/profile.png')
-                  }
-                  style={styles.profileImage}
-                />
+                <Image
+                    source={
+                      profileEditData.profile_picture
+                      ? profileEditData.profile_picture.startsWith('/media')
+                        ? { uri: BASE_URL + profileEditData.profile_picture }
+                        : { uri: profileEditData.profile_picture }
+                      : require('../assets/profile.png')
+                    }
+                    style={styles.profileImage}
+                  />
                 <Text style={styles.name}>
                   {profileData.first_name} {profileData.last_name}
                 </Text>

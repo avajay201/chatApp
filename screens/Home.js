@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState, useCallback } from 'react';
-import { View, Text,Modal, StyleSheet, TextInput, Button, Linking, TouchableOpacity, ActivityIndicator, ToastAndroid, Image, FlatList, Dimensions } from 'react-native';
+import { View, Text,Modal, BackHandler, StyleSheet, TextInput, Button, Linking, TouchableOpacity, ActivityIndicator, ToastAndroid, Image, FlatList, Dimensions } from 'react-native';
 import { MainContext } from '../others/MyContext';
 import MyLayout from './MyLayout';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -12,7 +12,7 @@ import { BASE_URL } from '../actions/API';
 
 
 export default function Home({ navigation }) {
-  const { setIsLogged, callPicked, setCallPicked, wsData } = useContext(MainContext);
+  const { setIsLogged, callPicked, setCallPicked, wsData, setNumExists } = useContext(MainContext);
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(false);
   const [searchedUser, setSearchedUser] = useState(null);
@@ -153,6 +153,36 @@ export default function Home({ navigation }) {
   const [notificationsCount, setNotificationsCount] = useState(0);
   const [user, setUser] = useState(null);
   const [profileData, setProfileData] = useState({});
+  const [exitApp, setExitApp] = useState(false);
+
+  useFocusEffect(
+      React.useCallback(() => {
+        const backAction = () => {
+          if (exitApp) {
+            BackHandler.exitApp();
+            return true;
+          } else {
+            setExitApp(true);
+            ToastAndroid.show('Press again to exit the app', ToastAndroid.SHORT);
+  
+            setTimeout(() => {
+              setExitApp(false);
+            }, 2000);
+  
+            return true;
+          }
+        };
+  
+        // Add the back button listener
+        const backHandler = BackHandler.addEventListener(
+          'hardwareBackPress',
+          backAction
+        );
+  
+        // Remove the listener when screen loses focus or unmounts
+        return () => backHandler.remove();
+      }, [exitApp])
+  );
 
   // Get profile start
   const fetchProfile = async()=>{
@@ -162,6 +192,9 @@ export default function Home({ navigation }) {
       return
     }
     if (response[0] === 200){
+      if (response[1]?.mobile_number){
+        setNumExists(true);
+      };
       setProfileData(response[1]);
     }
     else if(response[0] === 401){
@@ -194,7 +227,7 @@ export default function Home({ navigation }) {
       return
     }
     if (result[0] === 200) {
-      setNotificationsCount(result[1].length);
+      setNotificationsCount(result[1].filter(noti => noti.read==false).length);
     } else if (result[0] === 401) {
       ToastAndroid.show("Session expired, please login.", ToastAndroid.SHORT);
       await AsyncStorage.removeItem("auth_token");
@@ -205,7 +238,12 @@ export default function Home({ navigation }) {
 
   useEffect(()=>{
     if (callPicked){
-      navigation.navigate('VideoCall', { userName: callPicked, user: 'test202', status: 'in' });
+      if (callPicked?.callType === 'audio'){
+        navigation.navigate('AudioCall', { userName: callPicked?.userName, user: 'test202', status: 'in' });
+      }
+      else{
+        navigation.navigate('VideoCall', { userName: callPicked?.userName, user: 'test202', status: 'in' });
+      }
       setCallPicked(false);
     }
   }, [callPicked]);
@@ -445,7 +483,7 @@ const styles = StyleSheet.create({
   },
   header: {
     width: '100%',
-    paddingVertical: 50,
+    paddingVertical: 60,
     paddingHorizontal: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -458,6 +496,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     left: 15,
+    marginTop: 14,
   },
   activeUserAvatar: {
     width: 60,
@@ -474,6 +513,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
     borderRadius: 7,
+    marginTop: 14,
   },
   upgradeText: {
     color: '#800925',
@@ -483,6 +523,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     right: 10,
+    marginTop: 17,
   },
   notificationCount: {
     position: 'absolute',

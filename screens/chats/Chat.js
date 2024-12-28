@@ -730,8 +730,22 @@ const Chat = ({ navigation }) => {
   // Report user end
 
   // Audio call start
-  const handleAudioCall = () => {
+  const handleAudioCall = async(id) => {
     ToastAndroid.show("Audio calling...", ToastAndroid.SHORT);
+    const result = await callLimit();
+    if (result && result[0] === 200){
+      console.log('result>>>', result, '==');
+      try{
+        navigation.navigate('AudioCall', { userName: userName, user: user, status: 'out', user_id: id });
+        console.log('+++');
+      }
+      catch(err){
+        console.log('Error:', err);
+      }
+    }
+    else{
+      ToastAndroid.show('You have exceeded the calls limit for your current subscription.', ToastAndroid.LONG);
+    }
   };
   // Audio call end
 
@@ -864,9 +878,9 @@ const Chat = ({ navigation }) => {
         {/* Call and Menu option */}
         <View style={styles.iconContainer}>
           <TouchableOpacity
-            // disabled={messageSendingLoader || (chatOn && !userProfile.other_blocked ? false : true)}
-            disabled={true}
-            onPress={handleAudioCall}
+            disabled={messageSendingLoader || (chatOn && !userProfile.other_blocked ? false : true)}
+            // disabled={true}
+            onPress={()=>handleAudioCall(userProfile.user_id)}
             style={styles.callIcon}
           >
             <MaterialIcons name="call" size={24} color={chatOn && !userProfile.other_blocked ? "#800925" : "gray"} />

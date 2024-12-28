@@ -1,18 +1,49 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ToastAndroid } from 'react-native';
+import { View, Text, TextInput, BackHandler, TouchableOpacity, StyleSheet, ActivityIndicator, ToastAndroid } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import ErrorMessage from '../comps/ErrorMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { userLogin } from '../../actions/APIActions';
 import { MainContext } from '../../others/MyContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [exitApp, setExitApp] = useState(false);
   const [error, setError] = useState('');
   const { setIsLogged, deviceToken } = useContext(MainContext);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const backAction = () => {
+        if (exitApp) {
+          BackHandler.exitApp();
+          return true;
+        } else {
+          setExitApp(true);
+          ToastAndroid.show('Press again to exit the app', ToastAndroid.SHORT);
+
+          setTimeout(() => {
+            setExitApp(false);
+          }, 2000);
+
+          return true;
+        }
+      };
+
+      // Add the back button listener
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction
+      );
+
+      // Remove the listener when screen loses focus or unmounts
+      return () => backHandler.remove();
+    }, [exitApp])
+  );
 
   // Handle login start
   const handleLogin = async() => {
@@ -93,9 +124,6 @@ export default function Login({ navigation }) {
           </TouchableOpacity>
         </Animatable.View>
         )}
-        <TouchableOpacity disabled={loading} onPress={() => navigation.navigate('Register')}>
-          <Text style={[styles.registerText, loading ? styles.disabledText : {}]}>Don't have an account? Register</Text>
-        </TouchableOpacity>
       </Animatable.View>
     </View>
   );

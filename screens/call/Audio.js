@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { RTCView } from "react-native-webrtc";
 import Icon from 'react-native-vector-icons/Ionicons';
-import { MaterialIcons } from '@expo/vector-icons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 
 
@@ -22,7 +21,7 @@ const ButtonContainer = (props) => {
     );
 };
 
-export default Audio = (props) => {
+export default AudioC = (props) => {
     if (props.remoteStream?._tracks?.length > 0 && !props.callTimer && !props.isConnected){
         props.startTimer();
         props.setIsConnected(true);
@@ -77,7 +76,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-end',
         alignItems: 'center',
-        backgroundColor: 'black',
+        backgroundColor: '#800925',
     },
     video: {
         position: 'absolute',

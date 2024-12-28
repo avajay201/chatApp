@@ -11,6 +11,7 @@ import Calls from './screens/Calls';
 import Chat from './screens/chats/Chat';
 import Chats from './screens/chats/Chats';
 import VideoCall from './screens/call/VideoCall';
+import AudioCall from './screens/call/AudioCall';
 import Payment from './screens/Payment';
 import Subscriptions from './screens/Subscriptions';
 import Checkout from './screens/Checkout';
@@ -169,6 +170,7 @@ function App() {
           <Stack.Screen name='Calls' component={Calls} />
           <Stack.Screen name='Chat' component={Chat} />
           <Stack.Screen name='VideoCall' component={VideoCall} />
+          <Stack.Screen name='AudioCall' component={AudioCall} />
           <Stack.Screen name='Payment' component={Payment} />
           <Stack.Screen name='Subscriptions' component={Subscriptions} />
           <Stack.Screen name='Checkout' component={Checkout} />

@@ -36,10 +36,11 @@ export default class Utils {
 
 
     // Audio call
-    static async getAudioStream() {
-        if (!isAudio) {
-            return null; // Return null if audio capture is not requested
-        }
+    static async getAudioStream(isAudio=null) {
+        console.log('#########################');
+        // if (!isAudio) {
+        //     return null; // Return null if audio capture is not requested
+        // }
 
         // Get audio stream only
         const stream = await mediaDevices.getUserMedia({

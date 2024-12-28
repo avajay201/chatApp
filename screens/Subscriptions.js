@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,13 @@ import {
 } from "react-native";
 import MyLayout from './MyLayout';
 import { getSubcriptions } from './../actions/APIActions';
+import { MainContext } from '../others/MyContext';
 
 
 const SubscriptionPage = ({ navigation }) => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { numExists } = useContext(MainContext);
 
   useEffect(()=>{
     const allSubscriptions = async()=>{
@@ -29,6 +31,10 @@ const SubscriptionPage = ({ navigation }) => {
   }, []);
 
   const handlePayment = async(sub_id, price, addons) => {
+    if (!numExists){
+      ToastAndroid.show('Please update your number in profile!', ToastAndroid.SHORT);
+      return;
+    }
     navigation.navigate('Checkout', { price: price, id: sub_id, addons: addons});
   };
 

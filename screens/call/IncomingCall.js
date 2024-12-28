@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { View, Text, StyleSheet, Animated } from "react-native";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
 
-const IncomingCall = ({ onAnswer, onDecline, userName }) => {
+const IncomingCall = ({ onAnswer, onDecline, userName, callType }) => {
   const translateXAnswer = useRef(new Animated.Value(0)).current;
   const translateXDecline = useRef(new Animated.Value(0)).current;
   const arrowOpacityAnswer = useRef(new Animated.Value(1)).current;
@@ -52,7 +52,7 @@ const IncomingCall = ({ onAnswer, onDecline, userName }) => {
     <View style={styles.container}>
       <View style={styles.callHeader}>
         <Text style={styles.callComingText}>{userName}</Text>
-        <Text style={styles.callType}>Audio Call</Text>
+        <Text style={styles.callType}>{callType === 'audio' ? 'Audio Call' : 'Video Call'}</Text>
       </View>
       
       <View style={styles.logoContainer}>

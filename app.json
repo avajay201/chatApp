@@ -48,10 +48,10 @@
     "scheme": "myapp",
     "extra": {
       "eas": {
-        "projectId": "3d41a4b7-7c83-4820-92a7-6c699b0c958e"
+        "projectId": "534ad337-6a7f-455e-916c-7d0500adc840"
       }
     },
-    "owner": "praduman001",
+    "owner": "arshpreet1231",
     "notification": {
       "icon": "./assets/icon.png",
       "color": "#000000"

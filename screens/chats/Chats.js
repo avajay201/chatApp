@@ -174,42 +174,43 @@ export default function Chats({ navigation }) {
             <Icon name="search" size={20} color="#800925" />
           </View>
         </View>
+        <View>
 
-        {isLoading ? (
-          // Show loader while chats are loading
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color="#800925" />
-          </View>
-        ) : (
-          <>
-            {/* Active Users Section */}
-            {activeMembers.length > 0 && (
-              <FlatList
-                data={activeMembers}
-                renderItem={renderActiveUserItem}
-                keyExtractor={(item, index) => item.id}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.activeUsersList}
-              />
-            )}
+          {isLoading ? (
+            // Show loader while chats are loading
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#800925" />
+            </View>
+          ) : (
+            <>
+              {/* Active Users Section */}
+              {activeMembers.length > 0 && (
+                <FlatList
+                  data={activeMembers}
+                  renderItem={renderActiveUserItem}
+                  keyExtractor={(item, index) => item.id}
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.activeUsersList}
+                />
+              )}
 
-            {/* Chats Section */}
-            {chats.length === 0 ? (
-              <View style={styles.noChatsContainer}>
-                <Text style={styles.noChatsText}>No chats available</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={filteredChats}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
-                showsVerticalScrollIndicator={false}
-              />
-            )}
-          </>
-        )}
-
+              {/* Chats Section */}
+              {chats.length === 0 ? (
+                <View style={styles.noChatsContainer}>
+                  <Text style={styles.noChatsText}>No chats available</Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={filteredChats}
+                  renderItem={renderItem}
+                  keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
+                  showsVerticalScrollIndicator={false}
+                />
+              )}
+            </>
+          )}
+        </View>
       </View>
     </MyLayout>
   );
@@ -250,8 +251,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   activeUsersList: {
-    paddingHorizontal: 10,
-    paddingBottom: 5,
+    paddingHorizontal: 20,
     height: 80,
     backgroundColor: '#fff',
     minWidth: '100%',

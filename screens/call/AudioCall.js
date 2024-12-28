@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { View, TouchableOpacity, StyleSheet, Text, ToastAndroid } from "react-native";
-import Audio from "./Audio";
+import AudioC from "./Audio";
 import { RTCPeerConnection, MediaStream, RTCIceCandidate, RTCSessionDescription } from 'react-native-webrtc';
 import Utils from "./Utils";
 import { useRoute } from "@react-navigation/native";
@@ -135,6 +135,7 @@ export default AudioCall = ({ navigation }) => {
             caller: user,
             receiver: userName,
             timestamp: new Date().toISOString(),
+            callType: 'audio',
           };
           await updateDoc(cRef.current, cWithAnswer);
           connecting.current = true;
@@ -211,6 +212,7 @@ export default AudioCall = ({ navigation }) => {
         caller: user,
         receiver: userName,
         timestamp: new Date().toISOString(),
+        callType: 'audio',
       }
 
       try {
@@ -305,7 +307,7 @@ export default AudioCall = ({ navigation }) => {
   return (
     <>
       {((localStream && localStream?._tracks?.length > 0)) && callStatus != 'end' ? (
-        <Audio
+        <AudioC
           hangUp={hangUp}
           localStream={localStream}
           remoteStream={remoteStream}

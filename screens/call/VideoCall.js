@@ -172,7 +172,7 @@ export default VideoCall = ({ navigation }) => {
           const [remoteStream] = event.streams;
           setRemoteStream(remoteStream);
         };
-        
+
         collectIceCandidates(cRef.current, user, userName);
 
         if (pc.current) {
@@ -187,6 +187,7 @@ export default VideoCall = ({ navigation }) => {
             caller: user,
             receiver: userName,
             timestamp: new Date().toISOString(),
+            callType: 'video',
           };
           await updateDoc(cRef.current, cWithAnswer);
           connecting.current = true;
@@ -263,6 +264,7 @@ export default VideoCall = ({ navigation }) => {
         caller: user,
         receiver: userName,
         timestamp: new Date().toISOString(),
+        callType: 'video',
       }
 
       try {
