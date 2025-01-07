@@ -109,8 +109,8 @@ export default function Calls({ navigation }) {
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.headerRow}>
-            <Icon onPress={() => navigation.navigate('Chats')} name="chatbox-outline" size={40} color="#800925" />
-            <Icon name="call" size={40} color="#800925" />
+            <Icon onPress={() => navigation.navigate('Chats')} name="chatbox-outline" size={24} color="#800925" />
+            <Icon name="call" size={24} color="#800925" />
           </View>
           <View style={styles.inputContainer}>
             <TextInput
