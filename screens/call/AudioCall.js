@@ -60,7 +60,7 @@ export default AudioCall = ({ navigation }) => {
 
   const makeCall = async()=>{
     const data = {
-      call_type: "Video",
+      call_type: "Audio",
       call_duration: callTime,
       receiver: user_id
     }
