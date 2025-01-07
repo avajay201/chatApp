@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useContext } from "react";
 import {
   View,
   Text,
@@ -38,10 +38,12 @@ import { Avatar } from "../comps/chats/Avatar";
 import * as ImagePicker from "expo-image-picker";
 import { Video } from "expo-av";
 import { Picker } from '@react-native-picker/picker';
+import { MainContext } from "../../others/MyContext";
 
 
 const MESSAGE_HEIGHT = 100; // message height
 const Chat = ({ navigation }) => {
+  const { wsData } = useContext(MainContext);
   const route = useRoute();
   const { userName } = route.params;
   const [messages, setMessages] = useState([]);
@@ -836,6 +838,12 @@ const Chat = ({ navigation }) => {
   };
   // Handle message image preview end
 
+const getItemLayout = (data, index) => ({
+    length: 50,
+    offset: 50 * index,
+    index,
+});
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -861,9 +869,9 @@ const Chat = ({ navigation }) => {
           />
           {chatOn && !userProfile.other_blocked && (
             <>
-              <View style={userStatus ? styles.onlineDot : styles.offlineDot} />
+              <View style={userStatus || (wsData && wsData['members'].filter(member => member === userName)) ? styles.onlineDot : styles.offlineDot} />
               <View style={styles.lastSeen }>
-                <Text style={styles.lastSeenText}>{userStatus ? 'Online' : userProfile.last_seen}</Text>
+                <Text style={styles.lastSeenText}>{userStatus || (wsData && wsData['members'].filter(member => member === userName)) ? 'Online' : userProfile.last_seen}</Text>
               </View>
             </>
           )}
@@ -920,16 +928,7 @@ const Chat = ({ navigation }) => {
           ref={(ref) => {
             flatListRefs.current = ref;
           }}
-          getMessageLayout={getMessageLayout}
-          onScrollToIndexFailed={(info) => {
-            if (info.index === sections.length - 1) {
-              flatListRefs.current.scrollToLocation({
-                sectionIndex: sections.length - 1,
-                itemIndex: sections[sections.length - 1].data.length - 1,
-                animated: true,
-              });
-            }
-          }}
+          getItemLayout={getItemLayout}
           contentContainerStyle={styles.messagesContainer}
         />
       )}
