@@ -733,13 +733,10 @@ const Chat = ({ navigation }) => {
 
   // Audio call start
   const handleAudioCall = async(id) => {
-    ToastAndroid.show("Audio calling...", ToastAndroid.SHORT);
     const result = await callLimit();
     if (result && result[0] === 200){
-      console.log('result>>>', result, '==');
       try{
         navigation.navigate('AudioCall', { userName: userName, user: user, status: 'out', user_id: id });
-        console.log('+++');
       }
       catch(err){
         console.log('Error:', err);
